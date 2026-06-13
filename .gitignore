@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+.next
+out
+build
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Prisma
+generated
+
+# Logs
+*.log
+logs
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Turbo
+.turbo
+
+# Test coverage
+coverage
+
+# Misc
+*.tgz

@@ -1,0 +1,631 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  admin
+  teacher
+  student
+}
+
+enum PdfStatus {
+  pending
+  processing
+  completed
+  failed
+  partial
+}
+
+enum PdfSource {
+  telegram
+  direct_upload
+}
+
+enum ExtractionStatus {
+  pending
+  completed
+  failed
+}
+
+enum QuestionType {
+  single_correct
+  multi_correct
+  integer_type
+  assertion_reason
+  match_following
+  subjective
+  fill_blank
+}
+
+enum ReviewStatus {
+  pending_review
+  approved
+  rejected
+  needs_edit
+}
+
+enum Difficulty {
+  easy
+  medium
+  hard
+}
+
+enum StitchingMethod {
+  single_page
+  multi_page_stitched
+  manual
+}
+
+enum AssetContext {
+  question
+  option
+  answer
+  explanation
+  full_page
+}
+
+enum AssetType {
+  image
+  diagram
+  graph
+  circuit
+  chemical
+  table
+  other
+}
+
+enum TestStatus {
+  draft
+  published
+  active
+  completed
+  archived
+}
+
+enum AttemptStatus {
+  in_progress
+  submitted
+  abandoned
+}
+
+enum SelectionStrategy {
+  random
+  least_used
+  difficulty_balanced
+}
+
+enum NotificationType {
+  test_published
+  test_starting
+  test_result
+  pdf_processed
+  question_review
+}
+
+// ─── Organizations ────────────────────────────────────────────────────────────
+
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  plan      String   @default("trial")
+  isActive  Boolean  @default(true) @map("is_active")
+  settings  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  users             User[]
+  pdfs              Pdf[]
+  questions         Question[]
+  tests             Test[]
+  testTemplates     TestTemplate[]
+  studentTestAccess StudentTestAccess[]
+
+  @@map("organizations")
+}
+
+// ─── Users ────────────────────────────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  email          String
+  passwordHash   String    @map("password_hash")
+  name           String
+  role           UserRole  @default(student)
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  uploadedPdfs            Pdf[]              @relation("PdfUploader")
+  reviewedQuestions       Question[]         @relation("QuestionReviewer")
+  classificationOverrides Question[]         @relation("ClassificationOverrider")
+  questionVersions        QuestionVersion[]
+  createdTests            Test[]
+  testTemplates           TestTemplate[]
+  studentTestAccess       StudentTestAccess[]
+  testAttempts            TestAttempt[]
+  addedTestQuestions      TestQuestion[]
+  auditLogs               AuditLog[]
+  notifications           Notification[]
+
+  @@unique([organizationId, email])
+  @@index([email])
+  @@map("users")
+}
+
+// ─── Subjects (global reference data) ────────────────────────────────────────
+
+model Subject {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  code         String   @unique
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  chapters         Chapter[]
+  questions        Question[]
+  tests            Test[]
+  templateSections TestTemplateSection[]
+
+  @@map("subjects")
+}
+
+// ─── Chapters (global reference data) ────────────────────────────────────────
+
+model Chapter {
+  id          String   @id @default(uuid()) @db.Uuid
+  subjectId   String   @map("subject_id") @db.Uuid
+  name        String
+  number      Int
+  description String?
+  syllabusTag String   @default("ALL") @map("syllabus_tag")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  subject   Subject    @relation(fields: [subjectId], references: [id])
+  questions Question[]
+
+  @@unique([subjectId, number, syllabusTag])
+  @@index([subjectId])
+  @@map("chapters")
+}
+
+// ─── PDFs ─────────────────────────────────────────────────────────────────────
+
+model Pdf {
+  id                    String    @id @default(uuid()) @db.Uuid
+  organizationId        String    @map("organization_id") @db.Uuid
+  sha256Hash            String    @unique @map("sha256_hash")
+  originalFilename      String    @map("original_filename")
+  r2Key                 String    @map("r2_key")
+  sizeBytes             BigInt    @map("size_bytes")
+  pageCount             Int?      @map("page_count")
+  pagesExtractedCount   Int       @default(0) @map("pages_extracted_count")
+  stitchEnqueued        Boolean   @default(false) @map("stitch_enqueued")
+  status                PdfStatus @default(pending)
+  source                PdfSource @default(telegram)
+  telegramMessageId     String?   @map("telegram_message_id")
+  uploadedBy            String?   @map("uploaded_by") @db.Uuid
+  errorMessage          String?   @map("error_message")
+  processingStartedAt   DateTime? @map("processing_started_at") @db.Timestamptz(6)
+  processingCompletedAt DateTime? @map("processing_completed_at") @db.Timestamptz(6)
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  uploader     User?        @relation("PdfUploader", fields: [uploadedBy], references: [id])
+
+  pages          PdfPage[]
+  rawExtractions RawPageExtraction[]
+  questions      Question[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([organizationId, status])
+  @@map("pdfs")
+}
+
+// ─── PDF Pages ────────────────────────────────────────────────────────────────
+
+model PdfPage {
+  id         String   @id @default(uuid()) @db.Uuid
+  pdfId      String   @map("pdf_id") @db.Uuid
+  pageNumber Int      @map("page_number")
+  r2Key      String   @map("r2_key")
+  widthPx    Int?     @map("width_px")
+  heightPx   Int?     @map("height_px")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  pdf           Pdf                @relation(fields: [pdfId], references: [id])
+  rawExtraction RawPageExtraction?
+  questions     Question[]
+
+  @@unique([pdfId, pageNumber])
+  @@map("pdf_pages")
+}
+
+// ─── Raw Page Extractions (Pass 1) ────────────────────────────────────────────
+
+model RawPageExtraction {
+  id                 String          @id @default(uuid()) @db.Uuid
+  pdfId              String          @map("pdf_id") @db.Uuid
+  pdfPageId          String          @unique @map("pdf_page_id") @db.Uuid
+  pageNumber         Int             @map("page_number")
+  extractionStatus   ExtractionStatus @default(pending) @map("extraction_status")
+  rawGeminiResponse  Json?           @map("raw_gemini_response")
+  promptVersion      String?         @map("prompt_version")
+  processingAttempts Int             @default(0) @map("processing_attempts")
+  extractedAt        DateTime?       @map("extracted_at") @db.Timestamptz(6)
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  pdf     Pdf     @relation(fields: [pdfId], references: [id])
+  pdfPage PdfPage @relation(fields: [pdfPageId], references: [id])
+
+  @@unique([pdfId, pageNumber])
+  @@index([pdfId, extractionStatus])
+  @@map("raw_page_extractions")
+}
+
+// ─── Questions ────────────────────────────────────────────────────────────────
+
+model Question {
+  id                             String          @id @default(uuid()) @db.Uuid
+  organizationId                 String          @map("organization_id") @db.Uuid
+  pdfId                          String          @map("pdf_id") @db.Uuid
+  pdfPageId                      String?         @map("pdf_page_id") @db.Uuid
+  pageNumber                     Int?            @map("page_number")
+  sourcePageStart                Int?            @map("source_page_start")
+  sourcePageEnd                  Int?            @map("source_page_end")
+  subjectId                      String?         @map("subject_id") @db.Uuid
+  chapterId                      String?         @map("chapter_id") @db.Uuid
+  questionType                   QuestionType    @map("question_type")
+  questionText                   String?         @map("question_text")
+  answerText                     String?         @map("answer_text")
+  integerAnswer                  Int?            @map("integer_answer")
+  answerExplanation              String?         @map("answer_explanation")
+  metadata                       Json            @default("{}")
+  difficulty                     Difficulty?
+  reviewStatus                   ReviewStatus    @default(pending_review) @map("review_status")
+  reviewedBy                     String?         @map("reviewed_by") @db.Uuid
+  reviewedAt                     DateTime?       @map("reviewed_at") @db.Timestamptz(6)
+  classificationMethod           String?         @map("classification_method")
+  chapterClassificationConfidence Float?         @map("chapter_classification_confidence")
+  classificationOverriddenBy     String?         @map("classification_overridden_by") @db.Uuid
+  classificationOverriddenAt     DateTime?       @map("classification_overridden_at") @db.Timestamptz(6)
+  extractionConfidence           Float?          @map("extraction_confidence")
+  confidenceFlags                String[]        @default([]) @map("confidence_flags")
+  stitchingMethod                StitchingMethod @default(single_page) @map("stitching_method")
+  stitchingConfidence            Float?          @map("stitching_confidence")
+  stitchingIncomplete            Boolean         @default(false) @map("stitching_incomplete")
+  sourcePageRawR2Key             String?         @map("source_page_raw_r2_key")
+  geminiRawResponse              Json?           @map("gemini_raw_response")
+  isDeleted                      Boolean         @default(false) @map("is_deleted")
+  createdAt                      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization            Organization @relation(fields: [organizationId], references: [id])
+  pdf                     Pdf          @relation(fields: [pdfId], references: [id])
+  pdfPage                 PdfPage?     @relation(fields: [pdfPageId], references: [id])
+  subject                 Subject?     @relation(fields: [subjectId], references: [id])
+  chapter                 Chapter?     @relation(fields: [chapterId], references: [id])
+  reviewer                User?        @relation("QuestionReviewer", fields: [reviewedBy], references: [id])
+  classificationOverrider User?        @relation("ClassificationOverrider", fields: [classificationOverriddenBy], references: [id])
+
+  options        QuestionOption[]
+  assets         QuestionAsset[]
+  versions       QuestionVersion[]
+  testQuestions  TestQuestion[]
+  attemptAnswers AttemptAnswer[]
+
+  @@index([organizationId, subjectId, chapterId])
+  @@index([organizationId, questionType])
+  @@index([organizationId, reviewStatus])
+  @@index([pdfId])
+  @@index([organizationId, isDeleted])
+  @@map("questions")
+}
+
+// ─── Question Options ─────────────────────────────────────────────────────────
+
+model QuestionOption {
+  id         String   @id @default(uuid()) @db.Uuid
+  questionId String   @map("question_id") @db.Uuid
+  label      String
+  optionText String?  @map("option_text")
+  isCorrect  Boolean  @default(false) @map("is_correct")
+  sequence   Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  question Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  assets   QuestionAsset[]
+
+  @@index([questionId])
+  @@map("question_options")
+}
+
+// ─── Question Assets ──────────────────────────────────────────────────────────
+
+model QuestionAsset {
+  id                  String       @id @default(uuid()) @db.Uuid
+  questionId          String       @map("question_id") @db.Uuid
+  optionId            String?      @map("option_id") @db.Uuid
+  assetContext        AssetContext @map("asset_context")
+  assetType           AssetType   @map("asset_type")
+  cloudinaryPublicId  String?     @map("cloudinary_public_id")
+  cloudinaryUrl       String?     @map("cloudinary_url")
+  cloudinarySecureUrl String?     @map("cloudinary_secure_url")
+  widthPx             Int?        @map("width_px")
+  heightPx            Int?        @map("height_px")
+  sequence            Int         @default(0)
+  r2KeyOriginal       String?     @map("r2_key_original")
+  imageSha256         String?     @map("image_sha256")
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  question Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  option   QuestionOption? @relation(fields: [optionId], references: [id])
+
+  @@index([questionId])
+  @@index([imageSha256])
+  @@map("question_assets")
+}
+
+// ─── Question Versions ────────────────────────────────────────────────────────
+
+model QuestionVersion {
+  id            String   @id @default(uuid()) @db.Uuid
+  questionId    String   @map("question_id") @db.Uuid
+  versionNumber Int      @map("version_number")
+  triggerEvent  String   @map("trigger_event")
+  snapshot      Json
+  authoredBy    String   @map("authored_by") @db.Uuid
+  changeSummary String?  @map("change_summary")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  question Question @relation(fields: [questionId], references: [id])
+  author   User     @relation(fields: [authoredBy], references: [id])
+
+  @@unique([questionId, versionNumber])
+  @@map("question_versions")
+}
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
+
+model Test {
+  id                String     @id @default(uuid()) @db.Uuid
+  organizationId    String     @map("organization_id") @db.Uuid
+  title             String
+  description       String?
+  subjectId         String?    @map("subject_id") @db.Uuid
+  createdBy         String     @map("created_by") @db.Uuid
+  templateId        String?    @map("template_id") @db.Uuid
+  templateSnapshot  Json?      @map("template_snapshot")
+  status            TestStatus @default(draft)
+  scheduledStart    DateTime?  @map("scheduled_start") @db.Timestamptz(6)
+  scheduledEnd      DateTime?  @map("scheduled_end") @db.Timestamptz(6)
+  durationMinutes   Int?       @map("duration_minutes")
+  totalMarks        Decimal?   @map("total_marks") @db.Decimal(8, 2)
+  shuffleQuestions  Boolean    @default(false) @map("shuffle_questions")
+  shuffleOptions    Boolean    @default(false) @map("shuffle_options")
+  instructions      String?
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?  @map("deleted_at") @db.Timestamptz(6)
+
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  subject      Subject?      @relation(fields: [subjectId], references: [id])
+  creator      User          @relation(fields: [createdBy], references: [id])
+  template     TestTemplate? @relation(fields: [templateId], references: [id])
+
+  sections      TestSection[]
+  testQuestions TestQuestion[]
+  studentAccess StudentTestAccess[]
+  attempts      TestAttempt[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, scheduledStart])
+  @@map("tests")
+}
+
+// ─── Test Sections ────────────────────────────────────────────────────────────
+
+model TestSection {
+  id                       String   @id @default(uuid()) @db.Uuid
+  testId                   String   @map("test_id") @db.Uuid
+  name                     String
+  instructions             String?
+  questionTypeFilter       String?  @map("question_type_filter")
+  maxQuestions             Int?     @map("max_questions")
+  marksPerQuestion         Decimal? @map("marks_per_question") @db.Decimal(5, 2)
+  negativeMarksPerQuestion Decimal? @map("negative_marks_per_question") @db.Decimal(5, 2)
+  sequence                 Int      @default(0)
+
+  test      Test           @relation(fields: [testId], references: [id], onDelete: Cascade)
+  questions TestQuestion[]
+
+  @@index([testId])
+  @@map("test_sections")
+}
+
+// ─── Test Questions ───────────────────────────────────────────────────────────
+
+model TestQuestion {
+  id            String   @id @default(uuid()) @db.Uuid
+  testId        String   @map("test_id") @db.Uuid
+  questionId    String   @map("question_id") @db.Uuid
+  sectionId     String?  @map("section_id") @db.Uuid
+  sequence      Int      @default(0)
+  marks         Decimal  @db.Decimal(5, 2)
+  negativeMarks Decimal  @default(0) @map("negative_marks") @db.Decimal(5, 2)
+  addedBy       String   @map("added_by") @db.Uuid
+  addedAt       DateTime @default(now()) @map("added_at") @db.Timestamptz(6)
+
+  test     Test         @relation(fields: [testId], references: [id], onDelete: Cascade)
+  question Question     @relation(fields: [questionId], references: [id])
+  section  TestSection? @relation(fields: [sectionId], references: [id])
+  adder    User         @relation(fields: [addedBy], references: [id])
+
+  @@unique([testId, questionId])
+  @@index([testId])
+  @@map("test_questions")
+}
+
+// ─── Test Templates ───────────────────────────────────────────────────────────
+
+model TestTemplate {
+  id                   String    @id @default(uuid()) @db.Uuid
+  organizationId       String    @map("organization_id") @db.Uuid
+  name                 String
+  description          String?
+  isPublic             Boolean   @default(false) @map("is_public")
+  createdBy            String    @map("created_by") @db.Uuid
+  totalDurationMinutes Int?      @map("total_duration_minutes")
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  organization Organization         @relation(fields: [organizationId], references: [id])
+  creator      User                 @relation(fields: [createdBy], references: [id])
+
+  sections TestTemplateSection[]
+  tests    Test[]
+
+  @@index([organizationId])
+  @@map("test_templates")
+}
+
+// ─── Test Template Sections ───────────────────────────────────────────────────
+
+model TestTemplateSection {
+  id                       String            @id @default(uuid()) @db.Uuid
+  templateId               String            @map("template_id") @db.Uuid
+  name                     String
+  sequence                 Int               @default(0)
+  subjectId                String?           @map("subject_id") @db.Uuid
+  questionTypes            QuestionType[]    @map("question_types")
+  questionCount            Int               @map("question_count")
+  marksPerQuestion         Decimal           @map("marks_per_question") @db.Decimal(5, 2)
+  negativeMarksPerQuestion Decimal           @default(0) @map("negative_marks_per_question") @db.Decimal(5, 2)
+  difficultyDistribution   Json?             @map("difficulty_distribution")
+  selectionStrategy        SelectionStrategy @default(random) @map("selection_strategy")
+
+  template TestTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  subject  Subject?     @relation(fields: [subjectId], references: [id])
+
+  @@index([templateId])
+  @@map("test_template_sections")
+}
+
+// ─── Student Test Access ──────────────────────────────────────────────────────
+
+model StudentTestAccess {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  testId         String   @map("test_id") @db.Uuid
+  studentId      String   @map("student_id") @db.Uuid
+  enrolledAt     DateTime @default(now()) @map("enrolled_at") @db.Timestamptz(6)
+  enrolledBy     String   @map("enrolled_by") @db.Uuid
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  test         Test         @relation(fields: [testId], references: [id])
+  student      User         @relation(fields: [studentId], references: [id])
+
+  @@unique([testId, studentId])
+  @@index([testId])
+  @@index([studentId])
+  @@map("student_test_access")
+}
+
+// ─── Test Attempts ────────────────────────────────────────────────────────────
+
+model TestAttempt {
+  id               String        @id @default(uuid()) @db.Uuid
+  testId           String        @map("test_id") @db.Uuid
+  studentId        String        @map("student_id") @db.Uuid
+  startedAt        DateTime      @default(now()) @map("started_at") @db.Timestamptz(6)
+  submittedAt      DateTime?     @map("submitted_at") @db.Timestamptz(6)
+  autoSubmitted    Boolean       @default(false) @map("auto_submitted")
+  status           AttemptStatus @default(in_progress)
+  rawScore         Decimal?      @map("raw_score") @db.Decimal(8, 2)
+  finalScore       Decimal?      @map("final_score") @db.Decimal(8, 2)
+  rank             Int?
+  timeTakenSeconds Int?          @map("time_taken_seconds")
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  test    Test @relation(fields: [testId], references: [id])
+  student User @relation(fields: [studentId], references: [id])
+
+  answers AttemptAnswer[]
+
+  @@unique([testId, studentId])
+  @@index([testId])
+  @@index([studentId])
+  @@map("test_attempts")
+}
+
+// ─── Attempt Answers ──────────────────────────────────────────────────────────
+
+model AttemptAnswer {
+  id                String   @id @default(uuid()) @db.Uuid
+  attemptId         String   @map("attempt_id") @db.Uuid
+  questionId        String   @map("question_id") @db.Uuid
+  selectedOptionIds String[] @default([]) @map("selected_option_ids")
+  integerAnswer     Int?     @map("integer_answer")
+  isMarkedForReview Boolean  @default(false) @map("is_marked_for_review")
+  visitCount        Int      @default(0) @map("visit_count")
+  timeSpentSeconds  Int      @default(0) @map("time_spent_seconds")
+  lastSavedAt       DateTime @default(now()) @map("last_saved_at") @db.Timestamptz(6)
+
+  attempt  TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id])
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+  @@map("attempt_answers")
+}
+
+// ─── Audit Logs ───────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  payload    Json?
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model Notification {
+  id          String           @id @default(uuid()) @db.Uuid
+  recipientId String           @map("recipient_id") @db.Uuid
+  type        NotificationType
+  title       String
+  body        String
+  entityType  String?          @map("entity_type")
+  entityId    String?          @map("entity_id")
+  isRead      Boolean          @default(false) @map("is_read")
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  recipient User @relation(fields: [recipientId], references: [id])
+
+  @@index([recipientId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
