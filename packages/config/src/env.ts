@@ -39,8 +39,13 @@ const envSchema = z.object({
   // ─── Gemini ───────────────────────────────────────────────────────────────
   GEMINI_API_KEY: z.string().min(1),
   GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+  GEMINI_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive().default(8192),
+  GEMINI_TEMPERATURE: z.coerce.number().min(0).max(2).default(0),
   GEMINI_MAX_RETRIES: z.coerce.number().int().nonnegative().default(3),
   GEMINI_RATE_LIMIT_RPM: z.coerce.number().int().positive().default(60),
+  GEMINI_PROMPT_VERSION: z.string().default('v1.0.0'),
+  GEMINI_INPUT_COST_PER_1M: z.coerce.number().positive().default(0.075),
+  GEMINI_OUTPUT_COST_PER_1M: z.coerce.number().positive().default(0.30),
 
   // ─── Cloudflare R2 ────────────────────────────────────────────────────────
   R2_ACCOUNT_ID: z.string().min(1),

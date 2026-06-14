@@ -5,11 +5,21 @@ export enum UserRole {
 }
 
 export enum PdfStatus {
-  Pending = 'pending',
+  Uploaded = 'uploaded',
+  Queued = 'queued',
   Processing = 'processing',
+  ReadyForExtraction = 'ready_for_extraction',
+  ExtractionInProgress = 'extraction_in_progress',
   Completed = 'completed',
   Failed = 'failed',
-  Partial = 'partial',
+}
+
+export enum PageStatus {
+  Pending = 'pending',
+  Extracting = 'extracting',
+  Extracted = 'extracted',
+  Completed = 'completed',
+  Failed = 'failed',
 }
 
 export enum PdfSource {
@@ -19,7 +29,9 @@ export enum PdfSource {
 
 export enum ExtractionStatus {
   Pending = 'pending',
+  Processing = 'processing',
   Completed = 'completed',
+  InvalidResponse = 'invalid_response',
   Failed = 'failed',
 }
 

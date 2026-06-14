@@ -16,11 +16,21 @@ enum UserRole {
 }
 
 enum PdfStatus {
-  pending
+  uploaded
+  queued
   processing
+  ready_for_extraction
+  extraction_in_progress
   completed
   failed
-  partial
+}
+
+enum PageStatus {
+  pending
+  extracting
+  extracted
+  completed
+  failed
 }
 
 enum PdfSource {
@@ -30,7 +40,9 @@ enum PdfSource {
 
 enum ExtractionStatus {
   pending
+  processing
   completed
+  invalid_response
   failed
 }
 
@@ -120,12 +132,13 @@ model Organization {
   settings  Json     @default("{}")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  users             User[]
-  pdfs              Pdf[]
-  questions         Question[]
-  tests             Test[]
-  testTemplates     TestTemplate[]
-  studentTestAccess StudentTestAccess[]
+  users              User[]
+  pdfs               Pdf[]
+  questions          Question[]
+  tests              Test[]
+  testTemplates      TestTemplate[]
+  studentTestAccess  StudentTestAccess[]
+  rawPageExtractions RawPageExtraction[]
 
   @@map("organizations")
 }
@@ -210,7 +223,7 @@ model Pdf {
   pageCount             Int?      @map("page_count")
   pagesExtractedCount   Int       @default(0) @map("pages_extracted_count")
   stitchEnqueued        Boolean   @default(false) @map("stitch_enqueued")
-  status                PdfStatus @default(pending)
+  status                PdfStatus @default(uploaded)
   source                PdfSource @default(telegram)
   telegramMessageId     String?   @map("telegram_message_id")
   uploadedBy            String?   @map("uploaded_by") @db.Uuid
@@ -235,13 +248,14 @@ model Pdf {
 // ─── PDF Pages ────────────────────────────────────────────────────────────────
 
 model PdfPage {
-  id         String   @id @default(uuid()) @db.Uuid
-  pdfId      String   @map("pdf_id") @db.Uuid
-  pageNumber Int      @map("page_number")
-  r2Key      String   @map("r2_key")
-  widthPx    Int?     @map("width_px")
-  heightPx   Int?     @map("height_px")
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id         String     @id @default(uuid()) @db.Uuid
+  pdfId      String     @map("pdf_id") @db.Uuid
+  pageNumber Int        @map("page_number")
+  r2Key      String     @map("r2_key")
+  status     PageStatus @default(pending)
+  widthPx    Int?       @map("width_px")
+  heightPx   Int?       @map("height_px")
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
 
   pdf           Pdf                @relation(fields: [pdfId], references: [id])
   rawExtraction RawPageExtraction?
@@ -254,22 +268,35 @@ model PdfPage {
 // ─── Raw Page Extractions (Pass 1) ────────────────────────────────────────────
 
 model RawPageExtraction {
-  id                 String          @id @default(uuid()) @db.Uuid
-  pdfId              String          @map("pdf_id") @db.Uuid
-  pdfPageId          String          @unique @map("pdf_page_id") @db.Uuid
-  pageNumber         Int             @map("page_number")
-  extractionStatus   ExtractionStatus @default(pending) @map("extraction_status")
-  rawGeminiResponse  Json?           @map("raw_gemini_response")
-  promptVersion      String?         @map("prompt_version")
-  processingAttempts Int             @default(0) @map("processing_attempts")
-  extractedAt        DateTime?       @map("extracted_at") @db.Timestamptz(6)
-  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                   String           @id @default(uuid()) @db.Uuid
+  organizationId       String           @map("organization_id") @db.Uuid
+  pdfId                String           @map("pdf_id") @db.Uuid
+  pdfPageId            String           @unique @map("pdf_page_id") @db.Uuid
+  pageNumber           Int              @map("page_number")
+  pageImageR2Key       String           @map("page_image_r2_key")
+  extractionStatus     ExtractionStatus @default(pending) @map("extraction_status")
+  rawGeminiResponse    Json?            @map("raw_gemini_response")
+  normalizedExtraction Json?            @map("normalized_extraction")
+  promptVersion        String?          @map("prompt_version")
+  modelVersion         String?          @map("model_version")
+  processingAttempts   Int              @default(0) @map("processing_attempts")
+  inputTokens          Int?             @map("input_tokens")
+  outputTokens         Int?             @map("output_tokens")
+  estimatedCostUsd     Decimal?         @map("estimated_cost_usd") @db.Decimal(10, 8)
+  processingDurationMs Int?             @map("processing_duration_ms")
+  extractionConfidence Float?           @map("extraction_confidence")
+  errorMessage         String?          @map("error_message")
+  extractedAt          DateTime?        @map("extracted_at") @db.Timestamptz(6)
+  createdAt            DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  pdf     Pdf     @relation(fields: [pdfId], references: [id])
-  pdfPage PdfPage @relation(fields: [pdfPageId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  pdf          Pdf          @relation(fields: [pdfId], references: [id])
+  pdfPage      PdfPage      @relation(fields: [pdfPageId], references: [id])
 
   @@unique([pdfId, pageNumber])
   @@index([pdfId, extractionStatus])
+  @@index([organizationId])
+  @@index([promptVersion])
   @@map("raw_page_extractions")
 }
 

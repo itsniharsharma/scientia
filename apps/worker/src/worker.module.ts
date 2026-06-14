@@ -5,6 +5,9 @@ import { AppConfigModule } from './config/app-config.module';
 import { DatabaseModule } from './database/database.module';
 import { RedisModule } from './redis/redis.module';
 import { HealthModule } from './health/health.module';
+import { QueueModule } from './queue/queue.module';
+import { PdfIngestModule } from './pdf-ingest/pdf-ingest.module';
+import { PageExtractModule } from './page-extract/page-extract.module';
 
 @Module({
   imports: [
@@ -22,6 +25,9 @@ import { HealthModule } from './health/health.module';
     DatabaseModule,
     RedisModule,
     HealthModule,
+    QueueModule,
+    PdfIngestModule,
+    PageExtractModule,
   ],
 })
 export class WorkerModule {}
