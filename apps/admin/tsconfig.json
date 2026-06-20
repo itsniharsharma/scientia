@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "noEmit": true,
+    "paths": {
+      "@scientia/types": ["../../packages/types/src/index.ts"],
+      "@scientia/validators": ["../../packages/validators/src/index.ts"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["electron"]
+}

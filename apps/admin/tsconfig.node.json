@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "./electron/dist",
+    "noEmit": false
+  },
+  "include": ["electron", "vite.config.ts"]
+}

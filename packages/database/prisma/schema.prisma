@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Subject {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  chapters  Chapter[]
+
+  @@map("subjects")
+}
+
+model Chapter {
+  id        String   @id @default(uuid())
+  subjectId String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  topics    Topic[]
+
+  @@unique([subjectId, name])
+  @@map("chapters")
+}
+
+model Topic {
+  id        String   @id @default(uuid())
+  chapterId String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chapter   Chapter    @relation(fields: [chapterId], references: [id])
+  questions Question[]
+
+  @@unique([chapterId, name])
+  @@map("topics")
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTI_CHOICE
+  INTEGER
+}
+
+enum QuestionStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Question {
+  id               String         @id @default(uuid())
+  topicId          String
+  type             QuestionType
+  status           QuestionStatus @default(DRAFT)
+  questionText     String?
+  questionImageUrl String?
+  integerAnswer    Int?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  topic   Topic    @relation(fields: [topicId], references: [id])
+  options Option[]
+
+  @@map("questions")
+}
+
+model Option {
+  id             String  @id @default(uuid())
+  questionId     String
+  position       Int
+  optionText     String?
+  optionImageUrl String?
+  isCorrect      Boolean @default(false)
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, position])
+  @@map("options")
+}
