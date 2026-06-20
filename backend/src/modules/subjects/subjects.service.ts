@@ -44,12 +44,11 @@ export async function getSubjectById(id: string): Promise<Subject> {
 }
 
 export async function createSubject(data: CreateSubjectInput): Promise<Subject> {
-  const name = data.name.trim();
   try {
-    const record = await prisma.subject.create({ data: { name } });
+    const record = await prisma.subject.create({ data: { name: data.name } });
     return toDto(record);
   } catch (err) {
-    return handleUniqueConstraint(name, err);
+    return handleUniqueConstraint(data.name, err);
   }
 }
 
@@ -58,15 +57,14 @@ export async function updateSubject(
   data: UpdateSubjectInput,
 ): Promise<Subject> {
   await getSubjectById(id);
-  const name = data.name.trim();
   try {
     const record = await prisma.subject.update({
       where: { id },
-      data: { name },
+      data: { name: data.name },
     });
     return toDto(record);
   } catch (err) {
-    return handleUniqueConstraint(name, err);
+    return handleUniqueConstraint(data.name, err);
   }
 }
 

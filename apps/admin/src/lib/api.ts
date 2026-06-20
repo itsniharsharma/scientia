@@ -125,9 +125,6 @@ export const questionsApi = {
   list: (topicId: string): Promise<Question[]> =>
     request<Question[]>(`/topics/${topicId}/questions`),
 
-  getById: (id: string): Promise<Question> =>
-    request<Question>(`/questions/${id}`),
-
   create: (topicId: string, data: CreateQuestionDto): Promise<Question> =>
     request<Question>(`/topics/${topicId}/questions`, {
       method: 'POST',

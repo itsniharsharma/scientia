@@ -101,29 +101,6 @@ export const createQuestionSchema = z
     }
   });
 
-const updateOptionSchema = z
-  .object({
-    position: z
-      .number({ required_error: 'Option position is required' })
-      .int('Position must be an integer')
-      .min(0, 'Position must be a non-negative integer'),
-    optionText: z.string().trim().min(1, 'Option text cannot be empty').optional(),
-    optionImageUrl: z
-      .string()
-      .trim()
-      .min(1, 'Option image URL cannot be empty')
-      .optional(),
-    isCorrect: z.boolean({ required_error: 'isCorrect is required' }),
-  })
-  .superRefine((data, ctx) => {
-    if (!data.optionText && !data.optionImageUrl) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Each option requires optionText or optionImageUrl',
-        path: ['optionText'],
-      });
-    }
-  });
 
 export const updateQuestionSchema = z
   .object({
@@ -139,7 +116,7 @@ export const updateQuestionSchema = z
       .min(1, 'Question image URL cannot be empty')
       .nullable()
       .optional(),
-    options: z.array(updateOptionSchema).optional(),
+    options: z.array(createOptionSchema).optional(),
     integerAnswer: z
       .number({ invalid_type_error: 'integerAnswer must be a number' })
       .int('integerAnswer must be an integer')
@@ -165,4 +142,4 @@ export const updateQuestionSchema = z
 export type CreateQuestionInput = z.infer<typeof createQuestionSchema>;
 export type UpdateQuestionInput = z.infer<typeof updateQuestionSchema>;
 export type CreateOptionInput = z.infer<typeof createOptionSchema>;
-export type UpdateOptionInput = z.infer<typeof updateOptionSchema>;
+export type UpdateOptionInput = z.infer<typeof createOptionSchema>;

@@ -7,12 +7,7 @@ export const createSubjectSchema = z.object({
     .min(1, 'Subject name is required'),
 });
 
-export const updateSubjectSchema = z.object({
-  name: z
-    .string({ required_error: 'Subject name is required' })
-    .trim()
-    .min(1, 'Subject name is required'),
-});
+export const updateSubjectSchema = createSubjectSchema;
 
 export type CreateSubjectInput = z.infer<typeof createSubjectSchema>;
-export type UpdateSubjectInput = z.infer<typeof updateSubjectSchema>;
+export type UpdateSubjectInput = CreateSubjectInput;

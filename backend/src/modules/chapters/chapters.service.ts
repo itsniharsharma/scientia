@@ -55,14 +55,13 @@ export async function createChapter(
   data: CreateChapterInput,
 ): Promise<Chapter> {
   await getSubjectById(subjectId);
-  const name = data.name.trim();
   try {
     const record = await prisma.chapter.create({
-      data: { subjectId, name },
+      data: { subjectId, name: data.name },
     });
     return toDto(record);
   } catch (err) {
-    return handleUniqueConstraint(name, err);
+    return handleUniqueConstraint(data.name, err);
   }
 }
 
@@ -71,15 +70,14 @@ export async function updateChapter(
   data: UpdateChapterInput,
 ): Promise<Chapter> {
   await getChapterById(id);
-  const name = data.name.trim();
   try {
     const record = await prisma.chapter.update({
       where: { id },
-      data: { name },
+      data: { name: data.name },
     });
     return toDto(record);
   } catch (err) {
-    return handleUniqueConstraint(name, err);
+    return handleUniqueConstraint(data.name, err);
   }
 }
 

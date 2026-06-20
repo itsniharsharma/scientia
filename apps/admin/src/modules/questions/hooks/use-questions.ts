@@ -14,13 +14,6 @@ export function useQuestions(topicId: string) {
   });
 }
 
-export function useQuestion(id: string) {
-  return useQuery({
-    queryKey: questionKey(id),
-    queryFn: () => questionsApi.getById(id),
-  });
-}
-
 export function useCreateQuestion(topicId: string) {
   const qc = useQueryClient();
   return useMutation({
