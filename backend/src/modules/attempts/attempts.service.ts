@@ -5,7 +5,7 @@ import {
   ConflictError,
   UnprocessableError,
 } from '../../shared/errors';
-import { scoreResponse, computeScore } from './score.service';
+import { scoreResponse, computeScore, isAttempted } from './score.service';
 import type {
   AttemptDto,
   AttemptWithDetailsDto,
@@ -260,6 +260,83 @@ function buildAttemptWithDetails(
     test: testMeta,
     questions,
     responses: [],
+  };
+}
+
+// ─── Attempt Review ───────────────────────────────────────────────────────────
+
+export async function getAttemptReview(attemptId: string, studentId: string) {
+  const attempt = await prisma.attempt.findUnique({
+    where: { id: attemptId },
+    include: {
+      test: {
+        select: {
+          name: true,
+          testQuestions: { orderBy: { position: 'asc' } },
+        },
+      },
+      responses: true,
+    },
+  });
+
+  if (!attempt) throw new NotFoundError('Attempt not found');
+  if (attempt.studentId !== studentId) throw new ForbiddenError('This is not your attempt');
+  if (attempt.status !== 'SUBMITTED' && attempt.status !== 'EXPIRED') {
+    throw new UnprocessableError('Attempt has not been submitted yet');
+  }
+
+  // Build a response lookup map: testQuestionId → response
+  const responseMap = new Map(attempt.responses.map((r) => [r.testQuestionId, r]));
+
+  const questions = attempt.test.testQuestions.map((tq) => {
+    const response = responseMap.get(tq.id) ?? null;
+    const selected = (response?.selectedAnswerJson ?? null) as SelectedAnswer | null;
+    const correct = tq.correctAnswerJson as unknown as CorrectAnswerSnapshot;
+    const options = (tq.optionsJson as unknown as TestOptionSnapshot[])
+      .sort((a, b) => a.position - b.position)
+      .map((opt) => ({
+        id: opt.id,
+        position: opt.position,
+        optionText: opt.optionText,
+        optionImageUrl: opt.optionImageUrl,
+        isCorrect: correct.type === 'choice' ? correct.optionIds.includes(opt.id) : false,
+        wasSelected:
+          selected?.type === 'choice' ? selected.optionIds.includes(opt.id) : false,
+      }));
+
+    // Derive status from selected answer (isCorrect in DB is stored as false for unattempted)
+    const status: 'correct' | 'wrong' | 'skipped' =
+      selected === null || !isAttempted(selected)
+        ? 'skipped'
+        : (response?.isCorrect ?? false)
+          ? 'correct'
+          : 'wrong';
+
+    return {
+      id: tq.id,
+      position: tq.position,
+      questionText: tq.questionText,
+      questionImageUrl: tq.questionImageUrl,
+      questionType: tq.questionType as 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER',
+      options,
+      selectedAnswer: selected,
+      correctAnswer: correct,
+      status,
+      // Reserved for future: solutionExplanation, teacherNotes, difficultyTag
+    };
+  });
+
+  return {
+    attempt: {
+      id: attempt.id,
+      score: attempt.score,
+      correctCount: attempt.correctCount,
+      wrongCount: attempt.wrongCount,
+      unattemptedCount: attempt.unattemptedCount,
+      submittedAt: attempt.submittedAt?.toISOString() ?? null,
+      testName: attempt.test.name,
+    },
+    questions,
   };
 }
 

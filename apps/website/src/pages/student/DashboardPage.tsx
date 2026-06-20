@@ -45,6 +45,7 @@ function UpcomingTestCard({ test }: { test: ScheduledTestDto }) {
 }
 
 function RecentAttemptCard({ attempt }: { attempt: AttemptSummaryDto }) {
+  const navigate = useNavigate();
   const scoreColor =
     attempt.score === null
       ? 'text-slate-400'
@@ -52,8 +53,18 @@ function RecentAttemptCard({ attempt }: { attempt: AttemptSummaryDto }) {
         ? 'text-green-700'
         : 'text-red-600';
 
+  const isReviewable = attempt.status === 'SUBMITTED';
+
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+    <div
+      onClick={() => isReviewable && navigate(ROUTES.STUDENT_REVIEW(attempt.id))}
+      className={[
+        'rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition',
+        isReviewable
+          ? 'cursor-pointer hover:shadow-lg hover:border-slate-200'
+          : '',
+      ].join(' ')}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-slate-900 truncate">{attempt.testName}</h3>
@@ -64,11 +75,18 @@ function RecentAttemptCard({ attempt }: { attempt: AttemptSummaryDto }) {
             {attempt.submittedAt ? formatDate(attempt.submittedAt) : '—'}
           </p>
         </div>
-        <div className="text-right shrink-0">
-          <p className={`text-xl font-bold ${scoreColor}`}>
-            {attempt.score ?? '—'}
-          </p>
-          <p className="text-xs text-slate-400">score</p>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="text-right">
+            <p className={`text-xl font-bold ${scoreColor}`}>
+              {attempt.score ?? '—'}
+            </p>
+            <p className="text-xs text-slate-400">score</p>
+          </div>
+          {isReviewable && (
+            <span className="text-xs font-medium text-brand-700">
+              Review →
+            </span>
+          )}
         </div>
       </div>
       {attempt.status === 'SUBMITTED' && (

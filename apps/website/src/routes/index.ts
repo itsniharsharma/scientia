@@ -18,6 +18,7 @@ export const ROUTES = {
   STUDENT_TEST_INSTRUCTIONS: (testId: string) => `/student/tests/${testId}/instructions` as const,
   STUDENT_EXAM: (attemptId: string) => `/student/attempts/${attemptId}/exam` as const,
   STUDENT_RESULT: (attemptId: string) => `/student/attempts/${attemptId}/result` as const,
+  STUDENT_REVIEW: (attemptId: string) => `/student/attempts/${attemptId}/review` as const,
 } as const;
 
 export type StaticRoute = Extract<(typeof ROUTES)[keyof typeof ROUTES], string>;

@@ -1,3 +1,5 @@
+import type { CorrectAnswerSnapshot, TestQuestionDto } from './test';
+
 export type AttemptStatus = 'IN_PROGRESS' | 'SUBMITTED' | 'EXPIRED';
 
 export type SelectedAnswer =
@@ -36,7 +38,7 @@ export interface AttemptTestMeta {
 
 export interface AttemptWithDetailsDto extends AttemptDto {
   test: AttemptTestMeta;
-  questions: import('./test').TestQuestionDto[];
+  questions: TestQuestionDto[];
   responses: ResponseDto[];
 }
 
@@ -63,4 +65,40 @@ export interface StudentDashboardDto {
     totalAttempts: number;
     averageScore: number | null;
   };
+}
+
+// ─── Attempt Review ───────────────────────────────────────────────────────────
+
+export interface ReviewOption {
+  id: string;
+  position: number;
+  optionText: string | null;
+  optionImageUrl: string | null;
+  isCorrect: boolean;
+  wasSelected: boolean;
+}
+
+export interface ReviewQuestion {
+  id: string;
+  position: number;
+  questionText: string | null;
+  questionImageUrl: string | null;
+  questionType: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER';
+  options: ReviewOption[];
+  selectedAnswer: SelectedAnswer | null;
+  correctAnswer: CorrectAnswerSnapshot;
+  status: 'correct' | 'wrong' | 'skipped';
+}
+
+export interface AttemptReviewDto {
+  attempt: {
+    id: string;
+    score: number | null;
+    correctCount: number | null;
+    wrongCount: number | null;
+    unattemptedCount: number | null;
+    submittedAt: string | null;
+    testName: string;
+  };
+  questions: ReviewQuestion[];
 }

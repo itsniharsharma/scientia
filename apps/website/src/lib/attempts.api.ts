@@ -6,6 +6,7 @@ import type {
   SelectedAnswer,
   ScheduledTestDto,
   StudentDashboardDto,
+  AttemptReviewDto,
 } from '../types/attempt';
 
 export async function startAttempt(testId: string): Promise<AttemptWithDetailsDto> {
@@ -38,5 +39,10 @@ export async function listScheduledTests(): Promise<ScheduledTestDto[]> {
 
 export async function getStudentDashboard(): Promise<StudentDashboardDto> {
   const res = await api.get<StudentDashboardDto>('/student/dashboard');
+  return res.data;
+}
+
+export async function getAttemptReview(attemptId: string): Promise<AttemptReviewDto> {
+  const res = await api.get<AttemptReviewDto>(`/attempts/${attemptId}/review`);
   return res.data;
 }

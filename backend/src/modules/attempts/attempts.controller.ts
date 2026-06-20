@@ -41,6 +41,16 @@ export async function submitAttempt(req: Request, res: Response, next: NextFunct
   }
 }
 
+export async function getAttemptReview(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { userId } = req.user!;
+    const result = await AttemptsService.getAttemptReview(req.params.id, userId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function listScheduledTests(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { userId } = req.user!;

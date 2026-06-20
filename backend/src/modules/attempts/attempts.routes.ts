@@ -21,4 +21,7 @@ router.put('/:id/responses', validate(saveResponsesSchema), AttemptsController.s
 // POST /attempts/:id/submit — submit and score
 router.post('/:id/submit', AttemptsController.submitAttempt);
 
+// GET /attempts/:id/review — full question-by-question review (submitted attempts only)
+router.get('/:id/review', AttemptsController.getAttemptReview);
+
 export default router;

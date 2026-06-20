@@ -19,6 +19,7 @@ import { StudentTestsPage } from '../pages/student/StudentTestsPage';
 import { InstructionsPage } from '../pages/student/InstructionsPage';
 import { ExamRunnerPage } from '../pages/student/ExamRunnerPage';
 import { ResultPage } from '../pages/student/ResultPage';
+import { AttemptReviewPage } from '../pages/student/AttemptReviewPage';
 
 export function AppRouter() {
   return (
@@ -61,6 +62,7 @@ export function AppRouter() {
           <Route path="/student/tests" element={<StudentTestsPage />} />
           <Route path="/student/tests/:testId/instructions" element={<InstructionsPage />} />
           <Route path="/student/attempts/:attemptId/result" element={<ResultPage />} />
+          <Route path="/student/attempts/:attemptId/review" element={<AttemptReviewPage />} />
         </Route>
       </Route>
     </Routes>
