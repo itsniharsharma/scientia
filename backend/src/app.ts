@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import authRouter from './modules/auth/auth.routes';
 import testsRouter from './modules/tests/tests.routes';
+import attemptsRouter from './modules/attempts/attempts.routes';
+import studentRouter from './modules/student/student.routes';
 import subjectsRouter from './modules/subjects/subjects.routes';
 import {
   subjectChaptersRouter,
@@ -34,6 +36,8 @@ app.use(express.json());
 
 app.use('/auth', authRouter);
 app.use('/tests', testsRouter);
+app.use('/attempts', attemptsRouter);
+app.use('/student', studentRouter);
 app.use('/subjects', subjectsRouter);
 app.use('/subjects/:subjectId/chapters', subjectChaptersRouter);
 app.use('/chapters', chaptersRouter);

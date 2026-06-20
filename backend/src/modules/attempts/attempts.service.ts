@@ -1,0 +1,335 @@
+import { prisma } from '../../lib/prisma';
+import {
+  NotFoundError,
+  ForbiddenError,
+  ConflictError,
+  UnprocessableError,
+} from '../../shared/errors';
+import { scoreResponse, computeScore } from './score.service';
+import type {
+  AttemptDto,
+  AttemptWithDetailsDto,
+  AttemptTestMeta,
+  ResponseDto,
+  SelectedAnswer,
+  CorrectAnswerSnapshot,
+  TestOptionSnapshot,
+} from '@scientia/types';
+import type { SaveResponsesInput } from '@scientia/validators';
+import { Prisma } from '@prisma/client';
+
+// ─── DTOs ─────────────────────────────────────────────────────────────────────
+
+type AttemptRecord = Prisma.AttemptGetPayload<Record<string, never>>;
+
+function toAttemptDto(a: AttemptRecord): AttemptDto {
+  return {
+    id: a.id,
+    studentId: a.studentId,
+    testId: a.testId,
+    startedAt: a.startedAt.toISOString(),
+    submittedAt: a.submittedAt?.toISOString() ?? null,
+    status: a.status,
+    score: a.score,
+    correctCount: a.correctCount,
+    wrongCount: a.wrongCount,
+    unattemptedCount: a.unattemptedCount,
+  };
+}
+
+function toResponseDto(r: Prisma.ResponseGetPayload<Record<string, never>>): ResponseDto {
+  return {
+    id: r.id,
+    attemptId: r.attemptId,
+    testQuestionId: r.testQuestionId,
+    selectedAnswerJson: r.selectedAnswerJson as SelectedAnswer | null,
+    isCorrect: r.isCorrect,
+    answeredAt: r.answeredAt?.toISOString() ?? null,
+  };
+}
+
+// ─── Guards ───────────────────────────────────────────────────────────────────
+
+async function requireAttemptOwner(attemptId: string, studentId: string) {
+  const attempt = await prisma.attempt.findUnique({ where: { id: attemptId } });
+  if (!attempt) throw new NotFoundError('Attempt not found');
+  if (attempt.studentId !== studentId) throw new ForbiddenError('This is not your attempt');
+  return attempt;
+}
+
+// ─── Service Functions ────────────────────────────────────────────────────────
+
+export async function startAttempt(
+  studentId: string,
+  testId: string,
+): Promise<AttemptWithDetailsDto> {
+  // Verify test exists and is SCHEDULED
+  const test = await prisma.test.findUnique({
+    where: { id: testId },
+    include: { testQuestions: { orderBy: { position: 'asc' } } },
+  });
+  if (!test) throw new NotFoundError('Test not found');
+  if (test.status !== 'SCHEDULED') {
+    throw new UnprocessableError('This test is not open for attempts');
+  }
+  if (test.testQuestions.length === 0) {
+    throw new UnprocessableError('This test has no questions');
+  }
+
+  // One attempt per student per test
+  const existing = await prisma.attempt.findUnique({
+    where: { studentId_testId: { studentId, testId } },
+  });
+  if (existing) {
+    throw new ConflictError('You have already started this test');
+  }
+
+  // Create attempt + blank response rows in a transaction
+  const attempt = await prisma.$transaction(async (tx) => {
+    const newAttempt = await tx.attempt.create({
+      data: { studentId, testId },
+    });
+
+    await tx.response.createMany({
+      data: test.testQuestions.map((tq) => ({
+        attemptId: newAttempt.id,
+        testQuestionId: tq.id,
+      })),
+    });
+
+    return newAttempt;
+  });
+
+  return buildAttemptWithDetails(attempt, test);
+}
+
+export async function getAttempt(
+  attemptId: string,
+  studentId: string,
+): Promise<AttemptWithDetailsDto> {
+  const attempt = await requireAttemptOwner(attemptId, studentId);
+
+  const test = await prisma.test.findUnique({
+    where: { id: attempt.testId },
+    include: { testQuestions: { orderBy: { position: 'asc' } } },
+  });
+
+  return buildAttemptWithDetails(attempt, test!);
+}
+
+export async function saveResponses(
+  attemptId: string,
+  studentId: string,
+  data: SaveResponsesInput,
+): Promise<ResponseDto[]> {
+  const attempt = await requireAttemptOwner(attemptId, studentId);
+  if (attempt.status !== 'IN_PROGRESS') {
+    throw new UnprocessableError('This attempt is no longer active');
+  }
+
+  const now = new Date();
+
+  await prisma.$transaction(
+    data.responses.map((r) =>
+      prisma.response.updateMany({
+        where: { attemptId, testQuestionId: r.testQuestionId },
+        data: {
+          selectedAnswerJson:
+            r.selectedAnswerJson !== null
+              ? JSON.parse(JSON.stringify(r.selectedAnswerJson))
+              : Prisma.JsonNull,
+          answeredAt: now,
+        },
+      }),
+    ),
+  );
+
+  const updated = await prisma.response.findMany({
+    where: { attemptId, testQuestionId: { in: data.responses.map((r) => r.testQuestionId) } },
+  });
+
+  return updated.map(toResponseDto);
+}
+
+export async function submitAttempt(
+  attemptId: string,
+  studentId: string,
+): Promise<AttemptDto> {
+  const attempt = await requireAttemptOwner(attemptId, studentId);
+  if (attempt.status !== 'IN_PROGRESS') {
+    throw new UnprocessableError('This attempt has already been submitted');
+  }
+
+  // Load all responses + their TestQuestion (for correct answers)
+  const responses = await prisma.response.findMany({
+    where: { attemptId },
+    include: {
+      testQuestion: true,
+    },
+  });
+
+  // Compute scores for each response
+  const scoringInputs = responses.map((r) => ({
+    questionType: r.testQuestion.questionType as 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER',
+    selected: r.selectedAnswerJson as SelectedAnswer | null,
+    correct: r.testQuestion.correctAnswerJson as unknown as CorrectAnswerSnapshot,
+  }));
+
+  const { totalScore, correctCount, wrongCount, unattemptedCount } =
+    computeScore(scoringInputs);
+
+  // Score each individual response and persist
+  const now = new Date();
+  await prisma.$transaction([
+    ...responses.map((r) => {
+      const { isCorrect } = scoreResponse(
+        r.testQuestion.questionType as 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER',
+        r.selectedAnswerJson as SelectedAnswer | null,
+        r.testQuestion.correctAnswerJson as unknown as CorrectAnswerSnapshot,
+      );
+      return prisma.response.update({
+        where: { id: r.id },
+        data: { isCorrect: isCorrect ?? false },
+      });
+    }),
+    prisma.attempt.update({
+      where: { id: attemptId },
+      data: {
+        status: 'SUBMITTED',
+        submittedAt: now,
+        score: totalScore,
+        correctCount,
+        wrongCount,
+        unattemptedCount,
+      },
+    }),
+  ]);
+
+  const finalAttempt = await prisma.attempt.findUnique({ where: { id: attemptId } });
+  return toAttemptDto(finalAttempt!);
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function buildAttemptWithDetails(
+  attempt: AttemptRecord,
+  test: {
+    id: string;
+    name: string;
+    durationMinutes: number;
+    scheduledAt: Date;
+    testQuestions: {
+      id: string;
+      testId: string;
+      originalQuestionId: string;
+      questionText: string | null;
+      questionImageUrl: string | null;
+      questionType: string;
+      optionsJson: Prisma.JsonValue;
+      correctAnswerJson: Prisma.JsonValue;
+      position: number;
+      createdAt: Date;
+      updatedAt: Date;
+    }[];
+  },
+): AttemptWithDetailsDto {
+  const testMeta: AttemptTestMeta = {
+    id: test.id,
+    name: test.name,
+    durationMinutes: test.durationMinutes,
+    scheduledAt: test.scheduledAt.toISOString(),
+    questionCount: test.testQuestions.length,
+  };
+
+  const questions = test.testQuestions.map((tq) => ({
+    id: tq.id,
+    testId: tq.testId,
+    originalQuestionId: tq.originalQuestionId,
+    questionText: tq.questionText,
+    questionImageUrl: tq.questionImageUrl,
+    questionType: tq.questionType as 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER',
+    optionsJson: tq.optionsJson as unknown as TestOptionSnapshot[],
+    correctAnswerJson: tq.correctAnswerJson as unknown as CorrectAnswerSnapshot,
+    position: tq.position,
+    createdAt: tq.createdAt.toISOString(),
+    updatedAt: tq.updatedAt.toISOString(),
+  }));
+
+  return {
+    ...toAttemptDto(attempt),
+    test: testMeta,
+    questions,
+    responses: [],
+  };
+}
+
+// ─── Student Portal Queries ───────────────────────────────────────────────────
+
+export async function listScheduledTests(studentId: string) {
+  const tests = await prisma.test.findMany({
+    where: { status: 'SCHEDULED' },
+    include: {
+      _count: { select: { testQuestions: true } },
+      attempts: { where: { studentId }, select: { id: true, status: true } },
+    },
+    orderBy: { scheduledAt: 'asc' },
+  });
+
+  return tests.map((t) => {
+    const attempt = t.attempts[0] ?? null;
+    return {
+      id: t.id,
+      name: t.name,
+      scheduledAt: t.scheduledAt.toISOString(),
+      durationMinutes: t.durationMinutes,
+      questionCount: t._count.testQuestions,
+      attempted: !!attempt,
+      attemptId: attempt?.id ?? null,
+      attemptStatus: (attempt?.status ?? null) as
+        | 'IN_PROGRESS'
+        | 'SUBMITTED'
+        | 'EXPIRED'
+        | null,
+    };
+  });
+}
+
+export async function getStudentDashboard(studentId: string) {
+  const [upcomingTests, recentAttempts] = await Promise.all([
+    listScheduledTests(studentId),
+    prisma.attempt.findMany({
+      where: { studentId, status: { in: ['SUBMITTED', 'EXPIRED'] } },
+      include: { test: { select: { name: true, _count: { select: { testQuestions: true } } } } },
+      orderBy: { submittedAt: 'desc' },
+      take: 5,
+    }),
+  ]);
+
+  const submitted = recentAttempts.filter((a) => a.status === 'SUBMITTED');
+  const totalAttempts = submitted.length;
+  const averageScore =
+    totalAttempts === 0
+      ? null
+      : Math.round(
+          submitted.reduce((sum, a) => sum + (a.score ?? 0), 0) / totalAttempts,
+        );
+
+  return {
+    upcomingTests: upcomingTests.filter((t) => !t.attempted),
+    recentAttempts: recentAttempts.map((a) => ({
+      id: a.id,
+      studentId: a.studentId,
+      testId: a.testId,
+      startedAt: a.startedAt.toISOString(),
+      submittedAt: a.submittedAt?.toISOString() ?? null,
+      status: a.status,
+      score: a.score,
+      correctCount: a.correctCount,
+      wrongCount: a.wrongCount,
+      unattemptedCount: a.unattemptedCount,
+      testName: a.test.name,
+      questionCount: a.test._count.testQuestions,
+    })),
+    stats: { totalAttempts, averageScore },
+  };
+}

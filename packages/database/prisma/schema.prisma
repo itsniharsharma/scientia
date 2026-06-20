@@ -120,6 +120,8 @@ model Student {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  attempts Attempt[]
+
   @@map("students")
 }
 
@@ -145,6 +147,7 @@ model Test {
   teacher       Teacher        @relation(fields: [teacherId], references: [id])
   subject       Subject        @relation(fields: [subjectId], references: [id])
   testQuestions TestQuestion[]
+  attempts      Attempt[]
 
   @@map("tests")
 }
@@ -164,7 +167,55 @@ model TestQuestion {
 
   test             Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
   originalQuestion Question @relation(fields: [originalQuestionId], references: [id])
+  responses        Response[]
 
   @@unique([testId, position])
   @@map("test_questions")
+}
+
+// ─── Attempts ─────────────────────────────────────────────────────────────────
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+}
+
+model Attempt {
+  id               String        @id @default(uuid())
+  studentId        String
+  testId           String
+  startedAt        DateTime      @default(now())
+  submittedAt      DateTime?
+  status           AttemptStatus @default(IN_PROGRESS)
+  score            Int?
+  correctCount     Int?
+  wrongCount       Int?
+  unattemptedCount Int?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  student   Student    @relation(fields: [studentId], references: [id])
+  test      Test       @relation(fields: [testId], references: [id])
+  responses Response[]
+
+  @@unique([studentId, testId])
+  @@map("attempts")
+}
+
+model Response {
+  id                 String    @id @default(uuid())
+  attemptId          String
+  testQuestionId     String
+  selectedAnswerJson Json?
+  isCorrect          Boolean?
+  answeredAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  attempt      Attempt      @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  testQuestion TestQuestion @relation(fields: [testQuestionId], references: [id])
+
+  @@unique([attemptId, testQuestionId])
+  @@map("responses")
 }
