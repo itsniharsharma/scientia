@@ -3,13 +3,13 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "tsx watch --env-file .env src/index.ts",
+    "dev": "tsx watch --env-file ../.env src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:migrate:deploy": "prisma migrate deploy"
+    "db:generate": "prisma generate --env-file ../.env",
+    "db:migrate": "prisma migrate dev --env-file ../.env",
+    "db:migrate:deploy": "prisma migrate deploy --env-file ../.env"
   },
   "prisma": {
     "schema": "../packages/database/prisma/schema.prisma"

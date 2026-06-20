@@ -39,7 +39,7 @@ export const createQuestionSchema = z
       .min(1, 'Question image URL cannot be empty')
       .optional(),
     options: z.array(createOptionSchema).optional(),
-    integerAnswer: z.number({ invalid_type_error: 'integerAnswer must be a number' }).int('integerAnswer must be an integer').optional(),
+    integerAnswer: z.number({ invalid_type_error: 'integerAnswer must be a number' }).int('integerAnswer must be an integer').min(-2147483648, 'Value out of range').max(2147483647, 'Value out of range').optional(),
   })
   .superRefine((data, ctx) => {
     if (!data.questionText && !data.questionImageUrl) {

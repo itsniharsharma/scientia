@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useForm, useFieldArray, useWatch, type FieldPath } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { useForm, useFieldArray, useWatch, Controller, type FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createQuestionSchema } from '@scientia/validators';
@@ -7,6 +7,7 @@ import type { CreateQuestionInput } from '@scientia/validators';
 import { Modal } from '../../shared/components/Modal';
 import { Input } from '../../shared/components/Input';
 import { Button } from '../../shared/components/Button';
+import { ImageUpload } from '../../shared/components/ImageUpload';
 import { useCreateQuestion } from './hooks/use-questions';
 import { ApiError } from '../../lib/api';
 
@@ -55,6 +56,7 @@ function CreateQuestionDialog({
   onOpenChange,
 }: CreateQuestionDialogProps) {
   const { mutateAsync, isPending } = useCreateQuestion(topicId);
+  const [activeUploads, setActiveUploads] = useState(0);
 
   const {
     register,
@@ -64,16 +66,16 @@ function CreateQuestionDialog({
     watch,
     setValue,
     setError,
+    trigger,
     formState: { errors, isValid },
   } = useForm<CreateQuestionInput>({
     resolver: zodResolver(formSchema),
-    shouldUnregister: true,
     mode: 'onChange',
     defaultValues: {
       type: 'SINGLE_CHOICE',
       questionText: '',
       questionImageUrl: '',
-      options: [{ ...defaultOption, isCorrect: false }],
+      options: [{ ...defaultOption, isCorrect: true }],
     },
   });
 
@@ -102,8 +104,9 @@ function CreateQuestionDialog({
         type: 'SINGLE_CHOICE',
         questionText: '',
         questionImageUrl: '',
-        options: [{ ...defaultOption, isCorrect: false }],
+        options: [{ ...defaultOption, isCorrect: true }],
       });
+      setActiveUploads(0);
     }
     onOpenChange(next);
   }
@@ -194,11 +197,20 @@ function CreateQuestionDialog({
             error={errors.questionText?.message}
             {...register('questionText')}
           />
-          <Input
-            label="Image URL"
-            placeholder="https://…"
-            error={errors.questionImageUrl?.message}
-            {...register('questionImageUrl')}
+          <Controller
+            control={control}
+            name="questionImageUrl"
+            render={({ field: { value, onChange }, fieldState: { error } }) => (
+              <ImageUpload
+                label="Question image"
+                value={value}
+                onChange={(url) => onChange(url ?? undefined)}
+                onUploadStateChange={(up) =>
+                  setActiveUploads((c) => Math.max(0, c + (up ? 1 : -1)))
+                }
+                error={error?.message}
+              />
+            )}
           />
           {errors.root?.message &&
             !errors.questionText &&
@@ -285,11 +297,20 @@ function CreateQuestionDialog({
                       error={optErrors?.optionText?.message}
                       {...register(`options.${index}.optionText`)}
                     />
-                    <Input
-                      label={`Option ${index + 1} image URL`}
-                      placeholder="https://…"
-                      error={optErrors?.optionImageUrl?.message}
-                      {...register(`options.${index}.optionImageUrl`)}
+                    <Controller
+                      control={control}
+                      name={`options.${index}.optionImageUrl`}
+                      render={({ field: { value, onChange }, fieldState: { error } }) => (
+                        <ImageUpload
+                          label={`Option ${index + 1} image`}
+                          value={value}
+                          onChange={(url) => onChange(url ?? undefined)}
+                          onUploadStateChange={(up) =>
+                            setActiveUploads((c) => Math.max(0, c + (up ? 1 : -1)))
+                          }
+                          error={error?.message}
+                        />
+                      )}
                     />
                   </div>
 
@@ -297,7 +318,7 @@ function CreateQuestionDialog({
                   {fields.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => remove(index)}
+                      onClick={() => { remove(index); trigger(); }}
                       className="mt-6 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500"
                       aria-label={`Remove option ${index + 1}`}
                     >
@@ -351,7 +372,15 @@ function CreateQuestionDialog({
           </p>
         )}
 
-        <div className="flex justify-end gap-2">
+        <div className="flex items-center gap-2">
+          {activeUploads > 0 && (
+            <p className="mr-auto text-xs text-gray-500">Upload in progress…</p>
+          )}
+          {activeUploads === 0 && (errors.questionText || errors.questionImageUrl) && (
+            <p className="mr-auto text-xs text-red-600">
+              ↑ Question text or image is required
+            </p>
+          )}
           <Button
             type="button"
             variant="secondary"
@@ -360,7 +389,7 @@ function CreateQuestionDialog({
           >
             Cancel
           </Button>
-          <Button type="submit" loading={isPending} disabled={!isValid}>
+          <Button type="submit" loading={isPending} disabled={!isValid || activeUploads > 0}>
             Create
           </Button>
         </div>

@@ -4,6 +4,7 @@ import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  envDir: resolve(__dirname, '../..'),
   resolve: {
     alias: {
       '@scientia/types': resolve(__dirname, '../../packages/types/src/index.ts'),
