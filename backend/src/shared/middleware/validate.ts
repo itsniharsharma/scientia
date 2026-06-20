@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodSchema } from 'zod';
+import { ZodSchema, ZodIssue } from 'zod';
 
 export function validate(schema: ZodSchema) {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -7,7 +7,7 @@ export function validate(schema: ZodSchema) {
     if (!result.success) {
       res.status(400).json({
         error: 'Validation failed',
-        details: result.error.errors.map((e) => ({
+        details: result.error.errors.map((e: ZodIssue) => ({
           field: e.path.join('.'),
           message: e.message,
         })),

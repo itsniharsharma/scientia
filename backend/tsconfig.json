@@ -3,8 +3,10 @@
   "compilerOptions": {
     "module": "CommonJS",
     "moduleResolution": "node",
+    "rootDir": "..",
     "outDir": "./dist",
-    "rootDir": "./src",
+    "declaration": false,
+    "declarationMap": false,
     "paths": {
       "@scientia/types": ["../packages/types/src/index.ts"],
       "@scientia/validators": ["../packages/validators/src/index.ts"]

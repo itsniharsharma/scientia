@@ -29,3 +29,17 @@ export class UnprocessableError extends AppError {
     this.name = 'UnprocessableError';
   }
 }
+
+export class UnauthorizedError extends AppError {
+  constructor(message = 'Unauthorized') {
+    super(401, message);
+    this.name = 'UnauthorizedError';
+  }
+}
+
+export class ForbiddenError extends AppError {
+  constructor(message = 'Forbidden') {
+    super(403, message);
+    this.name = 'ForbiddenError';
+  }
+}

@@ -14,6 +14,7 @@ model Subject {
   updatedAt DateTime  @updatedAt
 
   chapters  Chapter[]
+  tests     Test[]
 
   @@map("subjects")
 }
@@ -65,11 +66,14 @@ model Question {
   questionText     String?
   questionImageUrl String?
   integerAnswer    Int?
+  appearanceCount  Int            @default(0)
+  lastAppearedAt   DateTime?
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  topic   Topic    @relation(fields: [topicId], references: [id])
-  options Option[]
+  topic         Topic          @relation(fields: [topicId], references: [id])
+  options       Option[]
+  testQuestions TestQuestion[]
 
   @@map("questions")
 }
@@ -86,4 +90,81 @@ model Option {
 
   @@unique([questionId, position])
   @@map("options")
+}
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  TEACHER
+  STUDENT
+}
+
+model Teacher {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tests Test[]
+
+  @@map("teachers")
+}
+
+model Student {
+  id        String   @id @default(uuid())
+  fullName  String
+  phone     String   @unique
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("students")
+}
+
+// ─── Tests ───────────────────────────────────────────────────────────────────
+
+enum TestStatus {
+  DRAFT
+  SCHEDULED
+  COMPLETED
+}
+
+model Test {
+  id              String     @id @default(uuid())
+  name            String
+  teacherId       String
+  subjectId       String
+  durationMinutes Int
+  scheduledAt     DateTime
+  status          TestStatus @default(DRAFT)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  teacher       Teacher        @relation(fields: [teacherId], references: [id])
+  subject       Subject        @relation(fields: [subjectId], references: [id])
+  testQuestions TestQuestion[]
+
+  @@map("tests")
+}
+
+model TestQuestion {
+  id                 String       @id @default(uuid())
+  testId             String
+  originalQuestionId String
+  questionText       String?
+  questionImageUrl   String?
+  questionType       QuestionType
+  optionsJson        Json
+  correctAnswerJson  Json
+  position           Int
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  test             Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  originalQuestion Question @relation(fields: [originalQuestionId], references: [id])
+
+  @@unique([testId, position])
+  @@map("test_questions")
 }
