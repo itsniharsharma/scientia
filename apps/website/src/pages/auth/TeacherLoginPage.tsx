@@ -31,7 +31,7 @@ export function TeacherLoginPage() {
     try {
       const result = await loginTeacher(data);
       setAuth(result.user, result.token);
-      navigate(ROUTES.HOME);
+      navigate(ROUTES.TEACHER_TESTS);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
