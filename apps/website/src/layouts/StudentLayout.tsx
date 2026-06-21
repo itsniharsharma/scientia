@@ -10,7 +10,7 @@ export function StudentLayout() {
 
   const handleSignOut = () => {
     clearAuth();
-    navigate(ROUTES.STUDENT_LOGIN);
+    navigate(ROUTES.HOME);
   };
 
   return (
