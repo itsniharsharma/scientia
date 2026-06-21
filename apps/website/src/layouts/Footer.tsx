@@ -14,7 +14,7 @@ export function Footer() {
   return (
     <footer className="border-t border-slate-100 bg-white">
       <Container>
-        <div className="grid grid-cols-1 gap-12 py-16 sm:grid-cols-2 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 py-12 sm:gap-12 sm:py-16 sm:grid-cols-2 md:grid-cols-3">
           <div>
             <Link
               to={ROUTES.HOME}

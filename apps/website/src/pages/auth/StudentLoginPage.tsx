@@ -41,7 +41,7 @@ export function StudentLoginPage() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
+    <div className="rounded-2xl border border-slate-100 bg-white p-6 sm:p-8 shadow-sm">
       <div className="mb-8">
         <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
           Student Portal

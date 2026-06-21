@@ -41,7 +41,7 @@ export function TeacherLoginPage() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
+    <div className="rounded-2xl border border-slate-100 bg-white p-6 sm:p-8 shadow-sm">
       <div className="mb-8">
         <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
           Teacher Portal

@@ -75,6 +75,7 @@ export interface ReviewOption {
   position: number;
   optionText: string | null;
   optionImageUrl: string | null;
+  latexContent: string | null;
   isCorrect: boolean;
   wasSelected: boolean;
 }
@@ -84,6 +85,7 @@ export interface ReviewQuestion {
   position: number;
   questionText: string | null;
   questionImageUrl: string | null;
+  latexContent: string | null;
   questionType: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER';
   options: ReviewOption[];
   selectedAnswer: SelectedAnswer | null;

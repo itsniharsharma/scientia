@@ -11,6 +11,8 @@ import {
 } from '../../lib/tests.api';
 import { ROUTES } from '../../routes';
 import type { TestQuestionDto, TestOptionSnapshot, ReplacementPoolQuestion } from '../../types/test';
+import { QuestionEditor } from '../../components/QuestionEditor';
+import { QuestionContent } from '../../components/QuestionContent';
 
 // ─── Question edit card ───────────────────────────────────────────────────────
 
@@ -89,10 +91,18 @@ function QuestionCard({
         </span>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-slate-800 truncate">
-            {question.questionText ?? <em className="text-slate-400">Image-only question</em>}
+            {question.questionText
+              ? question.questionText
+              : question.questionImageUrl
+                ? <em className="text-slate-400">Image-only question</em>
+                : question.latexContent
+                  ? <em className="text-slate-400">LaTeX-only question</em>
+                  : <em className="text-slate-400">Empty question</em>}
           </p>
           <p className="text-xs text-slate-400 mt-0.5">
             {question.questionType.replace('_', ' ')}
+            {question.questionImageUrl && ' · has image'}
+            {question.latexContent && ' · has LaTeX'}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -115,6 +125,18 @@ function QuestionCard({
       {expanded && (
         <div className="border-t border-slate-100 px-5 py-5 bg-slate-50">
           <div className="flex flex-col gap-4">
+            {(question.questionImageUrl || question.latexContent) && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">
+                  Question Preview
+                </label>
+                <QuestionContent
+                  questionText={null}
+                  questionImageUrl={question.questionImageUrl}
+                  latexContent={question.latexContent}
+                />
+              </div>
+            )}
             <div>
               <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">
                 Question Text
@@ -183,6 +205,47 @@ function QuestionCard({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Create question modal ────────────────────────────────────────────────────
+
+function CreateQuestionModal({
+  testId,
+  subjectId,
+  onClose,
+  onCreated,
+}: {
+  testId: string;
+  subjectId: string;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0">
+          <h3 className="text-base font-bold text-slate-900">New Question</h3>
+          <button
+            onClick={onClose}
+            className="flex h-7 w-7 items-center justify-center text-slate-400 hover:text-slate-700 text-xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Body — QuestionEditor owns form state, validation, submit, and footer buttons */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <QuestionEditor
+            testId={testId}
+            subjectId={subjectId}
+            onCancel={onClose}
+            onCreated={onCreated}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -279,6 +342,7 @@ export function TestReviewPage() {
   const { testId } = useParams<{ testId: string }>();
   const queryClient = useQueryClient();
   const [showReplacement, setShowReplacement] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
 
   const { data: test, isLoading, error } = useQuery({
     queryKey: ['test', testId],
@@ -364,12 +428,20 @@ export function TestReviewPage() {
             {sortedQuestions.length} questions &middot; edits only affect this test, not the question bank.
           </p>
         </div>
-        <button
-          onClick={() => setShowReplacement(true)}
-          className="shrink-0 rounded-xl border border-brand-300 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-100 transition-colors"
-        >
-          + Add Question
-        </button>
+        <div className="flex gap-2 shrink-0 flex-wrap">
+          <button
+            onClick={() => setShowCreate(true)}
+            className="rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800 transition-colors"
+          >
+            + Create Question
+          </button>
+          <button
+            onClick={() => setShowReplacement(true)}
+            className="rounded-xl border border-brand-300 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-100 transition-colors"
+          >
+            + Add from Bank
+          </button>
+        </div>
       </div>
 
       {/* Question list */}
@@ -391,6 +463,19 @@ export function TestReviewPage() {
           />
         ))}
       </div>
+
+      {/* Create question modal */}
+      {showCreate && (
+        <CreateQuestionModal
+          testId={testId!}
+          subjectId={test.subjectId}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            setShowCreate(false);
+            refresh();
+          }}
+        />
+      )}
 
       {/* Replacement modal */}
       {showReplacement && (

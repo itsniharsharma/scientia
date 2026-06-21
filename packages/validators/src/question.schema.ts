@@ -14,13 +14,14 @@ const createOptionSchema = z
       .trim()
       .min(1, 'Option image URL cannot be empty')
       .optional(),
+    latexContent: z.string().trim().min(1, 'Option LaTeX cannot be empty').optional(),
     isCorrect: z.boolean({ required_error: 'isCorrect is required' }),
   })
   .superRefine((data, ctx) => {
-    if (!data.optionText && !data.optionImageUrl) {
+    if (!data.optionText && !data.optionImageUrl && !data.latexContent) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Each option requires optionText or optionImageUrl',
+        message: 'Each option requires optionText, optionImageUrl, or latexContent',
         path: ['optionText'],
       });
     }
@@ -38,14 +39,15 @@ export const createQuestionSchema = z
       .trim()
       .min(1, 'Question image URL cannot be empty')
       .optional(),
+    latexContent: z.string().trim().min(1, 'LaTeX content cannot be empty').optional(),
     options: z.array(createOptionSchema).optional(),
     integerAnswer: z.number({ invalid_type_error: 'integerAnswer must be a number' }).int('integerAnswer must be an integer').min(-2147483648, 'Value out of range').max(2147483647, 'Value out of range').optional(),
   })
   .superRefine((data, ctx) => {
-    if (!data.questionText && !data.questionImageUrl) {
+    if (!data.questionText && !data.questionImageUrl && !data.latexContent) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'At least one of questionText or questionImageUrl is required',
+        message: 'At least one of questionText, questionImageUrl, or latexContent is required',
         path: ['questionText'],
       });
     }
@@ -116,6 +118,12 @@ export const updateQuestionSchema = z
       .min(1, 'Question image URL cannot be empty')
       .nullable()
       .optional(),
+    latexContent: z
+      .string()
+      .trim()
+      .min(1, 'LaTeX content cannot be empty')
+      .nullable()
+      .optional(),
     options: z.array(createOptionSchema).optional(),
     integerAnswer: z
       .number({ invalid_type_error: 'integerAnswer must be a number' })
@@ -127,6 +135,7 @@ export const updateQuestionSchema = z
     const hasAnyField =
       data.questionText !== undefined ||
       data.questionImageUrl !== undefined ||
+      data.latexContent !== undefined ||
       data.options !== undefined ||
       data.integerAnswer !== undefined;
 

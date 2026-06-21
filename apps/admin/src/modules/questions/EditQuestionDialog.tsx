@@ -25,6 +25,7 @@ const formSchema = z.preprocess((input) => {
     ...d,
     questionText: trimOrNull(d.questionText),
     questionImageUrl: trimOrNull(d.questionImageUrl),
+    latexContent: trimOrNull(d.latexContent),
     options: Array.isArray(d.options)
       ? d.options.map((o: unknown) => {
           if (typeof o !== 'object' || o === null) return o;
@@ -33,6 +34,7 @@ const formSchema = z.preprocess((input) => {
             ...opt,
             optionText: trimOrUndef(opt.optionText),
             optionImageUrl: trimOrUndef(opt.optionImageUrl),
+            latexContent: trimOrUndef(opt.latexContent),
           };
         })
       : d.options,
@@ -87,11 +89,13 @@ function EditQuestionDialog({
     reset({
       questionText: question.questionText ?? '',
       questionImageUrl: question.questionImageUrl ?? '',
+      latexContent: question.latexContent ?? '',
       integerAnswer: question.integerAnswer ?? undefined,
       options: question.options.map((o) => ({
         position: o.position,
         optionText: o.optionText ?? '',
         optionImageUrl: o.optionImageUrl ?? '',
+        latexContent: o.latexContent ?? '',
         isCorrect: o.isCorrect,
       })),
     });
@@ -122,6 +126,7 @@ function EditQuestionDialog({
       position: fields.length,
       optionText: '',
       optionImageUrl: '',
+      latexContent: '',
       isCorrect: false,
     });
   }
@@ -200,6 +205,25 @@ function EditQuestionDialog({
               />
             )}
           />
+          <div className="flex flex-col gap-1">
+            <label className="block text-sm font-medium text-gray-700">
+              LaTeX content{' '}
+              <span className="text-xs font-normal text-gray-400">(optional — KaTeX)</span>
+            </label>
+            <textarea
+              rows={3}
+              placeholder="\frac{d}{dx}\left(x^n\right) = nx^{n-1}"
+              className={[
+                'w-full rounded-md border px-3 py-2 text-sm font-mono text-gray-900 placeholder-gray-400 resize-y',
+                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                errors.latexContent ? 'border-red-500' : 'border-gray-300',
+              ].join(' ')}
+              {...register('latexContent')}
+            />
+            {errors.latexContent?.message && (
+              <p className="text-xs text-red-600" role="alert">{errors.latexContent.message}</p>
+            )}
+          </div>
         </div>
 
         {/* INTEGER answer */}
@@ -293,6 +317,27 @@ function EditQuestionDialog({
                         />
                       )}
                     />
+                    <div className="flex flex-col gap-1">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Option {index + 1} LaTeX{' '}
+                        <span className="text-xs font-normal text-gray-400">(optional)</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="\int x^2 dx"
+                        className={[
+                          'w-full rounded-md border px-3 py-2 text-sm font-mono text-gray-900 placeholder-gray-400 resize-y',
+                          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                          optErrors?.latexContent ? 'border-red-500' : 'border-gray-300',
+                        ].join(' ')}
+                        {...register(`options.${index}.latexContent`)}
+                      />
+                      {optErrors?.latexContent?.message && (
+                        <p className="text-xs text-red-600" role="alert">
+                          {optErrors.latexContent.message}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Remove */}

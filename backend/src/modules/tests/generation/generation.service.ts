@@ -21,6 +21,7 @@ function buildOptionsSnapshot(
     position: o.position,
     optionText: o.optionText,
     optionImageUrl: o.optionImageUrl,
+    latexContent: o.latexContent,
     isCorrect: o.isCorrect,
   }));
 }
@@ -79,6 +80,7 @@ export async function generateAndPersistTest(
         originalQuestionId: qId,
         questionText: q.questionText,
         questionImageUrl: q.questionImageUrl,
+        latexContent: q.latexContent,
         questionType: q.type,
         optionsJson: JSON.parse(JSON.stringify(buildOptionsSnapshot(q.options))),
         correctAnswerJson: JSON.parse(JSON.stringify(buildCorrectAnswerSnapshot(q))),

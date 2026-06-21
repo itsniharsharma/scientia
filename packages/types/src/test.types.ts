@@ -5,6 +5,7 @@ export interface TestOptionSnapshot {
   position: number;
   optionText: string | null;
   optionImageUrl: string | null;
+  latexContent?: string | null;
   isCorrect: boolean;
 }
 
@@ -15,9 +16,10 @@ export type CorrectAnswerSnapshot =
 export interface TestQuestionDto {
   id: string;
   testId: string;
-  originalQuestionId: string;
+  originalQuestionId: string | null;
   questionText: string | null;
   questionImageUrl: string | null;
+  latexContent: string | null;
   questionType: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER';
   optionsJson: TestOptionSnapshot[];
   correctAnswerJson: CorrectAnswerSnapshot;

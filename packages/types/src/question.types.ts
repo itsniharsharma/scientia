@@ -7,6 +7,7 @@ export interface QuestionOption {
   position: number;
   optionText: string | null;
   optionImageUrl: string | null;
+  latexContent: string | null;
   isCorrect: boolean;
 }
 
@@ -17,6 +18,7 @@ export interface Question {
   status: QuestionStatus;
   questionText: string | null;
   questionImageUrl: string | null;
+  latexContent: string | null;
   integerAnswer: number | null;
   options: QuestionOption[];
   createdAt: string;

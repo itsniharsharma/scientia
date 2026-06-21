@@ -11,6 +11,7 @@ type OptionRecord = {
   position: number;
   optionText: string | null;
   optionImageUrl: string | null;
+  latexContent: string | null;
   isCorrect: boolean;
 };
 
@@ -21,6 +22,7 @@ type QuestionRecord = {
   status: string;
   questionText: string | null;
   questionImageUrl: string | null;
+  latexContent: string | null;
   integerAnswer: number | null;
   createdAt: Date;
   updatedAt: Date;
@@ -34,6 +36,7 @@ function optionToDto(record: OptionRecord): QuestionOption {
     position: record.position,
     optionText: record.optionText,
     optionImageUrl: record.optionImageUrl,
+    latexContent: record.latexContent,
     isCorrect: record.isCorrect,
   };
 }
@@ -46,6 +49,7 @@ function toDto(record: QuestionRecord): Question {
     status: record.status as QuestionStatus,
     questionText: record.questionText,
     questionImageUrl: record.questionImageUrl,
+    latexContent: record.latexContent,
     integerAnswer: record.integerAnswer,
     options: record.options.map(optionToDto),
     createdAt: record.createdAt.toISOString(),
@@ -91,6 +95,7 @@ export async function createQuestion(
         type: data.type,
         questionText: data.questionText ?? null,
         questionImageUrl: data.questionImageUrl ?? null,
+        latexContent: data.latexContent ?? null,
         integerAnswer:
           data.type === 'INTEGER' ? (data.integerAnswer ?? null) : null,
       },
@@ -103,6 +108,7 @@ export async function createQuestion(
           position: i,
           optionText: o.optionText ?? null,
           optionImageUrl: o.optionImageUrl ?? null,
+          latexContent: o.latexContent ?? null,
           isCorrect: o.isCorrect,
         })),
       });
@@ -126,10 +132,12 @@ export async function updateQuestion(
     data.questionImageUrl !== undefined
       ? data.questionImageUrl
       : existing.questionImageUrl;
+  const effectiveLatex =
+    data.latexContent !== undefined ? data.latexContent : existing.latexContent;
 
-  if (!effectiveText && !effectiveImageUrl) {
+  if (!effectiveText && !effectiveImageUrl && !effectiveLatex) {
     throw new UnprocessableError(
-      'At least one of questionText or questionImageUrl is required',
+      'At least one of questionText, questionImageUrl, or latexContent is required',
     );
   }
 
@@ -155,6 +163,9 @@ export async function updateQuestion(
         ...(data.questionImageUrl !== undefined && {
           questionImageUrl: data.questionImageUrl,
         }),
+        ...(data.latexContent !== undefined && {
+          latexContent: data.latexContent,
+        }),
         ...(data.integerAnswer !== undefined && {
           integerAnswer: data.integerAnswer,
         }),
@@ -170,6 +181,7 @@ export async function updateQuestion(
             position: i,
             optionText: o.optionText ?? null,
             optionImageUrl: o.optionImageUrl ?? null,
+            latexContent: o.latexContent ?? null,
             isCorrect: o.isCorrect,
           })),
         });

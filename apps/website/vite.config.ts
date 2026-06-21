@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      '@scientia/validators': resolve(__dirname, '../../packages/validators/src/index.ts'),
     },
   },
   server: {

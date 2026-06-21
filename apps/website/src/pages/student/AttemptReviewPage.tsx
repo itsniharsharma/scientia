@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { getAttemptReview } from '../../lib/attempts.api';
 import { ROUTES } from '../../routes';
 import type { ReviewQuestion, ReviewOption } from '../../types/attempt';
+import { QuestionContent } from '../../components/QuestionContent';
+import { OptionContent } from '../../components/OptionContent';
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
@@ -53,7 +55,12 @@ function OptionRow({ opt, index }: { opt: ReviewOption; index: number }) {
   return (
     <div className={classes}>
       <span className="shrink-0 font-semibold w-5">{letter}.</span>
-      <span className="flex-1">{opt.optionText}</span>
+      <OptionContent
+        optionText={opt.optionText}
+        optionImageUrl={opt.optionImageUrl}
+        latexContent={opt.latexContent}
+        className="flex-1"
+      />
       {icon && (
         <span
           className={[
@@ -168,21 +175,13 @@ function QuestionCard({ question, number }: { question: ReviewQuestion; number: 
         <StatusBadge status={question.status} />
       </div>
 
-      {/* Question text */}
-      {question.questionText && (
-        <p className="text-base text-slate-800 leading-relaxed mb-4">
-          {question.questionText}
-        </p>
-      )}
-
-      {/* Question image */}
-      {question.questionImageUrl && (
-        <img
-          src={question.questionImageUrl}
-          alt={`Question ${number}`}
-          className="mb-4 max-h-60 rounded-xl border border-slate-100 object-contain"
-        />
-      )}
+      <QuestionContent
+        questionText={question.questionText}
+        questionImageUrl={question.questionImageUrl}
+        latexContent={question.latexContent}
+        questionNumber={number}
+        className="mb-4"
+      />
 
       {/* Options (choice questions) */}
       {question.questionType !== 'INTEGER' && question.options.length > 0 && (

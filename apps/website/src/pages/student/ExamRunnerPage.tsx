@@ -4,6 +4,8 @@ import { getAttempt, saveResponses, submitAttempt } from '../../lib/attempts.api
 import { ROUTES } from '../../routes';
 import type { AttemptWithDetailsDto, SelectedAnswer } from '../../types/attempt';
 import type { TestQuestionDto, TestOptionSnapshot } from '../../types/test';
+import { QuestionContent } from '../../components/QuestionContent';
+import { OptionContent } from '../../components/OptionContent';
 
 // ─── Local-storage crash recovery ────────────────────────────────────────────
 
@@ -91,7 +93,11 @@ function QuestionPanel({
 
     return (
       <div className="space-y-4">
-        <p className="text-base text-slate-800 leading-relaxed">{question.questionText}</p>
+        <QuestionContent
+          questionText={question.questionText}
+          questionImageUrl={question.questionImageUrl}
+          latexContent={question.latexContent}
+        />
         <div>
           <label className="block text-sm font-medium text-slate-600 mb-2">
             Enter your answer (integer):
@@ -138,7 +144,11 @@ function QuestionPanel({
 
   return (
     <div className="space-y-4">
-      <p className="text-base text-slate-800 leading-relaxed">{question.questionText}</p>
+      <QuestionContent
+        questionText={question.questionText}
+        questionImageUrl={question.questionImageUrl}
+        latexContent={question.latexContent}
+      />
       {question.questionType === 'MULTI_CHOICE' && (
         <p className="text-xs text-slate-400">Select all that apply</p>
       )}
@@ -158,10 +168,16 @@ function QuestionPanel({
                     : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:bg-brand-50/50',
                 ].join(' ')}
               >
-                <span className="font-medium">
-                  {String.fromCharCode(64 + opt.position)}.{' '}
-                </span>
-                {opt.optionText}
+                <div className="flex gap-2">
+                  <span className="font-medium shrink-0">
+                    {String.fromCharCode(64 + opt.position)}.
+                  </span>
+                  <OptionContent
+                    optionText={opt.optionText}
+                    optionImageUrl={opt.optionImageUrl}
+                    latexContent={opt.latexContent}
+                  />
+                </div>
               </button>
             );
           })}

@@ -8,6 +8,7 @@ import type {
   UpdateTestQuestionInput,
   AddReplacementQuestionInput,
   ReorderTestQuestionsInput,
+  CreateTestQuestionInput,
 } from '@scientia/validators';
 import type {
   TestDto,
@@ -57,9 +58,10 @@ function toTestQuestionDto(tq: TQ): TestQuestionDto {
   return {
     id: tq.id,
     testId: tq.testId,
-    originalQuestionId: tq.originalQuestionId,
+    originalQuestionId: tq.originalQuestionId ?? null,
     questionText: tq.questionText,
     questionImageUrl: tq.questionImageUrl,
+    latexContent: tq.latexContent,
     questionType: tq.questionType,
     optionsJson: tq.optionsJson as unknown as TestOptionSnapshot[],
     correctAnswerJson: tq.correctAnswerJson as unknown as CorrectAnswerSnapshot,
@@ -221,6 +223,7 @@ export async function addReplacementQuestion(
     position: o.position,
     optionText: o.optionText,
     optionImageUrl: o.optionImageUrl,
+    latexContent: o.latexContent,
     isCorrect: o.isCorrect,
   }));
 
@@ -230,6 +233,7 @@ export async function addReplacementQuestion(
       originalQuestionId: question.id,
       questionText: question.questionText,
       questionImageUrl: question.questionImageUrl,
+      latexContent: question.latexContent,
       questionType: question.type,
       optionsJson: JSON.parse(JSON.stringify(optionsSnap)),
       correctAnswerJson: correctAnswer as object,
@@ -250,6 +254,108 @@ export async function reorderTestQuestions(
       prisma.testQuestion.update({ where: { id }, data: { position } }),
     ),
   );
+}
+
+// ─── In-review question authoring ────────────────────────────────────────────
+
+export async function createTestQuestion(
+  testId: string,
+  teacherId: string,
+  data: CreateTestQuestionInput,
+): Promise<TestQuestionDto> {
+  await requireTestOwner(testId, teacherId);
+
+  const agg = await prisma.testQuestion.aggregate({
+    where: { testId },
+    _max: { position: true },
+  });
+  const nextPosition = (agg._max.position ?? 0) + 1;
+
+  if (!data.publishToQuestionBank) {
+    const optionsSnap: TestOptionSnapshot[] = (data.options ?? []).map((o) => ({
+      id: crypto.randomUUID(),
+      position: o.position,
+      optionText: o.optionText ?? null,
+      optionImageUrl: o.optionImageUrl ?? null,
+      latexContent: o.latexContent ?? null,
+      isCorrect: o.isCorrect,
+    }));
+
+    const correctAnswer: CorrectAnswerSnapshot =
+      data.questionType === 'INTEGER'
+        ? { type: 'integer', value: data.integerAnswer ?? null }
+        : { type: 'choice', optionIds: optionsSnap.filter((o) => o.isCorrect).map((o) => o.id) };
+
+    const tq = await prisma.testQuestion.create({
+      data: {
+        testId,
+        originalQuestionId: null,
+        questionText: data.questionText ?? null,
+        questionImageUrl: data.questionImageUrl ?? null,
+        latexContent: data.latexContent ?? null,
+        questionType: data.questionType,
+        optionsJson: optionsSnap as unknown as Prisma.InputJsonValue,
+        correctAnswerJson: correctAnswer as unknown as Prisma.InputJsonValue,
+        position: nextPosition,
+      },
+    });
+    return toTestQuestionDto(tq);
+  }
+
+  // Publish path: create Question + Options in transaction, then snapshot
+  const tq = await prisma.$transaction(async (tx) => {
+    const question = await tx.question.create({
+      data: {
+        topicId: data.topicId!,
+        type: data.questionType,
+        status: 'PUBLISHED',
+        questionText: data.questionText ?? null,
+        questionImageUrl: data.questionImageUrl ?? null,
+        latexContent: data.latexContent ?? null,
+        integerAnswer: data.integerAnswer ?? null,
+        options: {
+          create: (data.options ?? []).map((o) => ({
+            position: o.position,
+            optionText: o.optionText ?? null,
+            optionImageUrl: o.optionImageUrl ?? null,
+            latexContent: o.latexContent ?? null,
+            isCorrect: o.isCorrect,
+          })),
+        },
+      },
+      include: { options: { orderBy: { position: 'asc' } } },
+    });
+
+    const snap: TestOptionSnapshot[] = question.options.map((o) => ({
+      id: o.id,
+      position: o.position,
+      optionText: o.optionText,
+      optionImageUrl: o.optionImageUrl,
+      latexContent: o.latexContent,
+      isCorrect: o.isCorrect,
+    }));
+
+    const answer: CorrectAnswerSnapshot =
+      question.type === 'INTEGER'
+        ? { type: 'integer', value: question.integerAnswer }
+        : { type: 'choice', optionIds: snap.filter((o) => o.isCorrect).map((o) => o.id) };
+
+    return tx.testQuestion.create({
+      data: {
+        testId,
+        originalQuestionId: question.id,
+        questionText: question.questionText,
+        questionImageUrl: question.questionImageUrl,
+        latexContent: question.latexContent,
+        questionType: question.type,
+        optionsJson: snap as unknown as Prisma.InputJsonValue,
+        correctAnswerJson: answer as unknown as Prisma.InputJsonValue,
+        position: nextPosition,
+      },
+    });
+  });
+
+  return toTestQuestionDto(tq);
 }
 
 // ─── Analytics ────────────────────────────────────────────────────────────────
@@ -294,7 +400,9 @@ export async function getReplacementPool(testId: string, teacherId: string) {
 
   const usedIds = (
     await prisma.testQuestion.findMany({ where: { testId }, select: { originalQuestionId: true } })
-  ).map((tq) => tq.originalQuestionId);
+  )
+    .map((tq) => tq.originalQuestionId)
+    .filter((id): id is string => id !== null);
 
   return prisma.question.findMany({
     where: {

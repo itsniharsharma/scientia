@@ -73,10 +73,10 @@ export function AboutPage() {
   return (
     <>
       {/* Page hero */}
-      <section className="bg-slate-50 py-20 lg:py-28">
+      <section className="bg-slate-50 py-12 sm:py-20 lg:py-28">
         <Container narrow>
           <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900 lg:text-5xl">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
               About Scientia
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
@@ -137,7 +137,7 @@ export function AboutPage() {
               Three principles that guide every decision we make.
             </p>
           </div>
-          <div className="mt-12 grid gap-6 sm:grid-cols-3">
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {values.map((v) => (
               <Card key={v.title} hover className="flex flex-col">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-700">

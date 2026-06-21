@@ -106,3 +106,24 @@ export async function getTestAnalytics(testId: string): Promise<TestAnalyticsDto
   const res = await api.get<TestAnalyticsDto>(`/tests/${testId}/analytics`);
   return res.data;
 }
+
+// ─── In-review question authoring ─────────────────────────────────────────────
+
+export interface CreateTestQuestionPayload {
+  questionType: 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER';
+  questionText?: string;
+  questionImageUrl?: string;
+  latexContent?: string;
+  options?: { position: number; optionText?: string; optionImageUrl?: string; latexContent?: string; isCorrect: boolean }[];
+  integerAnswer?: number;
+  publishToQuestionBank: boolean;
+  topicId?: string;
+}
+
+export async function createTestQuestion(
+  testId: string,
+  data: CreateTestQuestionPayload,
+): Promise<TestQuestionDto> {
+  const res = await api.post<TestQuestionDto>(`/tests/${testId}/questions`, data);
+  return res.data;
+}

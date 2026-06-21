@@ -77,3 +77,107 @@ export const reorderTestQuestionsSchema = z.object({
 });
 
 export type ReorderTestQuestionsInput = z.infer<typeof reorderTestQuestionsSchema>;
+
+// ─── Create test question (in-review authoring) ───────────────────────────────
+
+const createTestQuestionOptionSchema = z
+  .object({
+    position: z.number().int().min(0),
+    optionText: z.string().trim().min(1).optional(),
+    optionImageUrl: z.string().trim().min(1).optional(),
+    latexContent: z.string().trim().min(1).optional(),
+    isCorrect: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.optionText && !data.optionImageUrl && !data.latexContent) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Each option requires optionText, optionImageUrl, or latexContent',
+        path: ['optionText'],
+      });
+    }
+  });
+
+export const createTestQuestionSchema = z
+  .object({
+    questionType: z.enum(['SINGLE_CHOICE', 'MULTI_CHOICE', 'INTEGER'] as const),
+    questionText: z.string().trim().min(1, 'Question text cannot be empty').optional(),
+    questionImageUrl: z.string().trim().min(1, 'Question image URL cannot be empty').optional(),
+    latexContent: z.string().trim().min(1, 'LaTeX content cannot be empty').optional(),
+    options: z.array(createTestQuestionOptionSchema).optional(),
+    integerAnswer: z
+      .number({ invalid_type_error: 'integerAnswer must be a number' })
+      .int()
+      .optional(),
+    publishToQuestionBank: z.boolean().default(false),
+    topicId: z.string().uuid('Invalid topic').optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.questionText && !data.questionImageUrl && !data.latexContent) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one of questionText, questionImageUrl, or latexContent is required',
+        path: ['questionText'],
+      });
+    }
+
+    if (data.questionType === 'INTEGER') {
+      if (data.options && data.options.length > 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'INTEGER questions cannot have options',
+          path: ['options'],
+        });
+      }
+      if (data.integerAnswer === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'INTEGER questions require integerAnswer',
+          path: ['integerAnswer'],
+        });
+      }
+    }
+
+    if (data.questionType === 'SINGLE_CHOICE' || data.questionType === 'MULTI_CHOICE') {
+      if (data.integerAnswer !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Choice questions cannot have integerAnswer',
+          path: ['integerAnswer'],
+        });
+      }
+      if (!data.options || data.options.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Choice questions require at least one option',
+          path: ['options'],
+        });
+      } else {
+        const correctCount = data.options.filter((o) => o.isCorrect).length;
+        if (data.questionType === 'SINGLE_CHOICE' && correctCount !== 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'SINGLE_CHOICE questions must have exactly one correct option',
+            path: ['options'],
+          });
+        }
+        if (data.questionType === 'MULTI_CHOICE' && correctCount < 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'MULTI_CHOICE questions must have at least one correct option',
+            path: ['options'],
+          });
+        }
+      }
+    }
+
+    if (data.publishToQuestionBank && !data.topicId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Topic is required when publishing to the Question Bank',
+        path: ['topicId'],
+      });
+    }
+  });
+
+export type CreateTestQuestionInput = z.infer<typeof createTestQuestionSchema>;

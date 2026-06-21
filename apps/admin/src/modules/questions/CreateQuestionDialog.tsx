@@ -23,6 +23,7 @@ const formSchema = z.preprocess((input) => {
     ...d,
     questionText: trimOrUndef(d.questionText),
     questionImageUrl: trimOrUndef(d.questionImageUrl),
+    latexContent: trimOrUndef(d.latexContent),
     options: Array.isArray(d.options)
       ? d.options.map((o: unknown) => {
           if (typeof o !== 'object' || o === null) return o;
@@ -31,6 +32,7 @@ const formSchema = z.preprocess((input) => {
             ...opt,
             optionText: trimOrUndef(opt.optionText),
             optionImageUrl: trimOrUndef(opt.optionImageUrl),
+            latexContent: trimOrUndef(opt.latexContent),
           };
         })
       : d.options,
@@ -41,6 +43,7 @@ const defaultOption = {
   position: 0,
   optionText: '',
   optionImageUrl: '',
+  latexContent: '',
   isCorrect: false,
 };
 
@@ -75,6 +78,7 @@ function CreateQuestionDialog({
       type: 'SINGLE_CHOICE',
       questionText: '',
       questionImageUrl: '',
+      latexContent: '',
       options: [{ ...defaultOption, isCorrect: true }],
     },
   });
@@ -104,6 +108,7 @@ function CreateQuestionDialog({
         type: 'SINGLE_CHOICE',
         questionText: '',
         questionImageUrl: '',
+        latexContent: '',
         options: [{ ...defaultOption, isCorrect: true }],
       });
       setActiveUploads(0);
@@ -128,6 +133,7 @@ function CreateQuestionDialog({
       position: fields.length,
       optionText: '',
       optionImageUrl: '',
+      latexContent: '',
       isCorrect: false,
     });
   }
@@ -212,6 +218,25 @@ function CreateQuestionDialog({
               />
             )}
           />
+          <div className="flex flex-col gap-1">
+            <label className="block text-sm font-medium text-gray-700">
+              LaTeX content{' '}
+              <span className="text-xs font-normal text-gray-400">(optional — KaTeX)</span>
+            </label>
+            <textarea
+              rows={3}
+              placeholder="\frac{d}{dx}\left(x^n\right) = nx^{n-1}"
+              className={[
+                'w-full rounded-md border px-3 py-2 text-sm font-mono text-gray-900 placeholder-gray-400 resize-y',
+                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                errors.latexContent ? 'border-red-500' : 'border-gray-300',
+              ].join(' ')}
+              {...register('latexContent')}
+            />
+            {errors.latexContent?.message && (
+              <p className="text-xs text-red-600" role="alert">{errors.latexContent.message}</p>
+            )}
+          </div>
           {errors.root?.message &&
             !errors.questionText &&
             !errors.questionImageUrl && (
@@ -312,6 +337,27 @@ function CreateQuestionDialog({
                         />
                       )}
                     />
+                    <div className="flex flex-col gap-1">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Option {index + 1} LaTeX{' '}
+                        <span className="text-xs font-normal text-gray-400">(optional)</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="\int x^2 dx"
+                        className={[
+                          'w-full rounded-md border px-3 py-2 text-sm font-mono text-gray-900 placeholder-gray-400 resize-y',
+                          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                          optErrors?.latexContent ? 'border-red-500' : 'border-gray-300',
+                        ].join(' ')}
+                        {...register(`options.${index}.latexContent`)}
+                      />
+                      {optErrors?.latexContent?.message && (
+                        <p className="text-xs text-red-600" role="alert">
+                          {optErrors.latexContent.message}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Remove */}

@@ -226,9 +226,10 @@ function buildAttemptWithDetails(
     testQuestions: {
       id: string;
       testId: string;
-      originalQuestionId: string;
+      originalQuestionId: string | null;
       questionText: string | null;
       questionImageUrl: string | null;
+      latexContent: string | null;
       questionType: string;
       optionsJson: Prisma.JsonValue;
       correctAnswerJson: Prisma.JsonValue;
@@ -252,6 +253,7 @@ function buildAttemptWithDetails(
     originalQuestionId: tq.originalQuestionId,
     questionText: tq.questionText,
     questionImageUrl: tq.questionImageUrl,
+    latexContent: tq.latexContent,
     questionType: tq.questionType as 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER',
     optionsJson: tq.optionsJson as unknown as TestOptionSnapshot[],
     correctAnswerJson: tq.correctAnswerJson as unknown as CorrectAnswerSnapshot,
@@ -304,6 +306,7 @@ export async function getAttemptReview(attemptId: string, studentId: string) {
         position: opt.position,
         optionText: opt.optionText,
         optionImageUrl: opt.optionImageUrl,
+        latexContent: opt.latexContent ?? null,
         isCorrect: correct.type === 'choice' ? correct.optionIds.includes(opt.id) : false,
         wasSelected:
           selected?.type === 'choice' ? selected.optionIds.includes(opt.id) : false,
@@ -322,12 +325,12 @@ export async function getAttemptReview(attemptId: string, studentId: string) {
       position: tq.position,
       questionText: tq.questionText,
       questionImageUrl: tq.questionImageUrl,
+      latexContent: tq.latexContent,
       questionType: tq.questionType as 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER',
       options,
       selectedAnswer: selected,
       correctAnswer: correct,
       status,
-      // Reserved for future: solutionExplanation, teacherNotes, difficultyTag
     };
   });
 

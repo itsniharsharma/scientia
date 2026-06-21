@@ -3,7 +3,7 @@ import { ROUTES } from '../routes';
 
 export function AuthLayout() {
   return (
-    <div className="flex min-h-full flex-col items-center justify-center bg-slate-50 px-4 py-16">
+    <div className="flex min-h-full flex-col items-center justify-center bg-slate-50 px-4 py-10 sm:py-16">
       <Link
         to={ROUTES.HOME}
         className="mb-10 flex items-center gap-2.5 text-xl font-bold text-brand-700"

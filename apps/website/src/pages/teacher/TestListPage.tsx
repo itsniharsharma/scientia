@@ -24,24 +24,24 @@ function TestCard({ test, onDelete }: { test: TestDto; onDelete: (id: string) =>
   const navigate = useNavigate();
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow transition-shadow">
+    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow transition-shadow">
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <span
+          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[test.status]}`}
+        >
+          {test.status}
+        </span>
+        {test.batchName && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+            <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {test.batchName}
+          </span>
+        )}
+      </div>
       <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <span
-              className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[test.status]}`}
-            >
-              {test.status}
-            </span>
-            {test.batchName && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-                <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {test.batchName}
-              </span>
-            )}
-          </div>
+        <div className="min-w-0">
           <h3 className="text-base font-semibold text-slate-900 truncate">{test.name}</h3>
           <p className="mt-1 text-sm text-slate-500">
             {test.questionCount} questions &middot; {test.durationMinutes} min

@@ -113,10 +113,10 @@ export function ContactPage() {
 
   return (
     <>
-      <section className="bg-slate-50 py-20 lg:py-28">
+      <section className="bg-slate-50 py-12 sm:py-20 lg:py-28">
         <Container narrow>
           <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900 lg:text-5xl">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
               Get in Touch
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-600">
@@ -180,7 +180,7 @@ export function ContactPage() {
                       className={inputClass(!!errors.message) + ' resize-none'}
                     />
                   </FormField>
-                  <Button type="submit" size="lg" loading={isSubmitting} className="self-start">
+                  <Button type="submit" size="lg" loading={isSubmitting} className="w-full sm:w-auto sm:self-start">
                     Send Message
                   </Button>
                 </form>

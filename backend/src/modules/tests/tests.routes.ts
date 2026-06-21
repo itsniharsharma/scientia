@@ -5,6 +5,7 @@ import {
   updateTestQuestionSchema,
   addReplacementQuestionSchema,
   reorderTestQuestionsSchema,
+  createTestQuestionSchema,
 } from '@scientia/validators';
 import { validate } from '../../shared/middleware/validate';
 import { authenticate } from '../../shared/middleware/authenticate';
@@ -30,6 +31,7 @@ router.get('/:testId/replacement-pool', TestsController.getReplacementPool);
 router.get('/:testId/analytics', TestsController.getTestAnalytics);
 
 // TestQuestion operations
+// Specific named sub-routes BEFORE parameterised /:questionId
 router.post(
   '/:testId/questions/replacement',
   validate(addReplacementQuestionSchema),
@@ -40,6 +42,13 @@ router.patch(
   validate(reorderTestQuestionsSchema),
   TestsController.reorderTestQuestions,
 );
+// In-review question authoring
+router.post(
+  '/:testId/questions',
+  validate(createTestQuestionSchema),
+  TestsController.createTestQuestion,
+);
+// Parameterised question routes
 router.patch(
   '/:testId/questions/:questionId',
   validate(updateTestQuestionSchema),

@@ -11,7 +11,7 @@ const stats = [
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-white py-24 lg:py-36">
+    <section className="relative overflow-hidden bg-white py-16 sm:py-24 lg:py-36">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
@@ -25,12 +25,12 @@ export function Hero() {
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-brand-600" />
-            <span className="text-xs font-semibold uppercase tracking-widest text-brand-700">
+            <span className="text-xs font-semibold uppercase tracking-wide sm:tracking-widest text-brand-700">
               Trusted by 5,000+ JEE &amp; NEET Aspirants
             </span>
           </div>
 
-          <h1 className="text-5xl font-bold leading-[1.1] tracking-tight text-slate-900 lg:text-[4.5rem]">
+          <h1 className="text-3xl font-bold leading-[1.1] tracking-tight text-slate-900 sm:text-5xl lg:text-[4.5rem]">
             Chemistry Excellence.{' '}
             <span className="text-brand-700">Structured Learning.</span>
             <br className="hidden sm:block" />

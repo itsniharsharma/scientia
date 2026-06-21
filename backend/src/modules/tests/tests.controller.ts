@@ -111,6 +111,23 @@ export async function reorderTestQuestions(
   }
 }
 
+export async function createTestQuestion(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const tq = await TestsService.createTestQuestion(
+      req.params.testId,
+      req.user!.userId,
+      req.body,
+    );
+    res.status(201).json(tq);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getReplacementPool(
   req: Request,
   res: Response,
