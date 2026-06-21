@@ -123,3 +123,16 @@ export async function getReplacementPool(
     next(err);
   }
 }
+
+export async function getTestAnalytics(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const data = await TestsService.getTestAnalytics(req.params.testId, req.user!.userId);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}

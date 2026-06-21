@@ -6,6 +6,7 @@ import {
   UnprocessableError,
 } from '../../shared/errors';
 import { scoreResponse, computeScore, isAttempted } from './score.service';
+import { resolveTestStatus } from '../tests/tests.utils';
 import type {
   AttemptDto,
   AttemptWithDetailsDto,
@@ -69,7 +70,11 @@ export async function startAttempt(
     include: { testQuestions: { orderBy: { position: 'asc' } } },
   });
   if (!test) throw new NotFoundError('Test not found');
-  if (test.status !== 'SCHEDULED') {
+  const resolvedStatus = resolveTestStatus(test);
+  if (resolvedStatus === 'COMPLETED') {
+    throw new UnprocessableError('This test has ended.');
+  }
+  if (resolvedStatus !== 'SCHEDULED') {
     throw new UnprocessableError('This test is not open for attempts');
   }
   if (test.testQuestions.length === 0) {
@@ -352,23 +357,25 @@ export async function listScheduledTests(studentId: string) {
     orderBy: { scheduledAt: 'asc' },
   });
 
-  return tests.map((t) => {
-    const attempt = t.attempts[0] ?? null;
-    return {
-      id: t.id,
-      name: t.name,
-      scheduledAt: t.scheduledAt.toISOString(),
-      durationMinutes: t.durationMinutes,
-      questionCount: t._count.testQuestions,
-      attempted: !!attempt,
-      attemptId: attempt?.id ?? null,
-      attemptStatus: (attempt?.status ?? null) as
-        | 'IN_PROGRESS'
-        | 'SUBMITTED'
-        | 'EXPIRED'
-        | null,
-    };
-  });
+  return tests
+    .filter((t) => resolveTestStatus(t) === 'SCHEDULED')
+    .map((t) => {
+      const attempt = t.attempts[0] ?? null;
+      return {
+        id: t.id,
+        name: t.name,
+        scheduledAt: t.scheduledAt.toISOString(),
+        durationMinutes: t.durationMinutes,
+        questionCount: t._count.testQuestions,
+        attempted: !!attempt,
+        attemptId: attempt?.id ?? null,
+        attemptStatus: (attempt?.status ?? null) as
+          | 'IN_PROGRESS'
+          | 'SUBMITTED'
+          | 'EXPIRED'
+          | null,
+      };
+    });
 }
 
 export async function getStudentDashboard(studentId: string) {

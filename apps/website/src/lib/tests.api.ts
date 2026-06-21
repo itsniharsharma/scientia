@@ -8,6 +8,7 @@ import type {
   ChapterOption,
   TopicOption,
   ReplacementPoolQuestion,
+  TestAnalyticsDto,
 } from '../types/test';
 
 // ─── Test Bank Endpoints (existing, no auth required) ────────────────────────
@@ -97,5 +98,10 @@ export async function reorderTestQuestions(
 
 export async function getReplacementPool(testId: string): Promise<ReplacementPoolQuestion[]> {
   const res = await api.get<ReplacementPoolQuestion[]>(`/tests/${testId}/replacement-pool`);
+  return res.data;
+}
+
+export async function getTestAnalytics(testId: string): Promise<TestAnalyticsDto> {
+  const res = await api.get<TestAnalyticsDto>(`/tests/${testId}/analytics`);
   return res.data;
 }

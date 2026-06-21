@@ -1,6 +1,7 @@
 import { prisma } from '../../lib/prisma';
 import { NotFoundError, ForbiddenError, UnprocessableError } from '../../shared/errors';
 import { generateAndPersistTest } from './generation/generation.service';
+import { resolveTestStatus } from './tests.utils';
 import type {
   GenerateTestInput,
   UpdateTestInput,
@@ -37,7 +38,7 @@ function toTestDto(t: TestWithCount): TestDto {
     subjectId: t.subjectId,
     durationMinutes: t.durationMinutes,
     scheduledAt: t.scheduledAt.toISOString(),
-    status: t.status,
+    status: resolveTestStatus(t) as TestDto['status'],
     questionCount: t._count.testQuestions,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString(),
@@ -68,7 +69,7 @@ function toTestWithQuestionsDto(t: TestWithQuestions): TestWithQuestionsDto {
     subjectId: t.subjectId,
     durationMinutes: t.durationMinutes,
     scheduledAt: t.scheduledAt.toISOString(),
-    status: t.status,
+    status: resolveTestStatus(t) as TestWithQuestionsDto['status'],
     questionCount: t.testQuestions.length,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString(),
@@ -230,6 +231,43 @@ export async function reorderTestQuestions(
       prisma.testQuestion.update({ where: { id }, data: { position } }),
     ),
   );
+}
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+export async function getTestAnalytics(testId: string, teacherId: string) {
+  const test = await prisma.test.findUnique({
+    where: { id: testId },
+    include: {
+      attempts: {
+        where: { status: 'SUBMITTED' },
+        include: { student: { select: { username: true } } },
+        orderBy: { score: 'desc' },
+      },
+    },
+  });
+
+  if (!test) throw new NotFoundError('Test not found');
+  if (test.teacherId !== teacherId) throw new ForbiddenError('You do not own this test');
+
+  const students = test.attempts.map((a) => ({
+    username: a.student.username,
+    score: a.score ?? 0,
+  }));
+
+  const scores = students.map((s) => s.score);
+  const highestScore = scores.length > 0 ? Math.max(...scores) : null;
+  const lowestScore = scores.length > 0 ? Math.min(...scores) : null;
+  const averageScore =
+    scores.length > 0
+      ? parseFloat((scores.reduce((sum, v) => sum + v, 0) / scores.length).toFixed(1))
+      : null;
+
+  return {
+    test: { id: test.id, name: test.name },
+    summary: { highestScore, lowestScore, averageScore },
+    students,
+  };
 }
 
 export async function getReplacementPool(testId: string, teacherId: string) {

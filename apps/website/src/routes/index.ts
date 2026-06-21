@@ -11,6 +11,7 @@ export const ROUTES = {
   TEACHER_TEST_NEW: '/teacher/tests/new',
   TEACHER_TEST: (id: string) => `/teacher/tests/${id}` as const,
   TEACHER_TEST_REVIEW: (id: string) => `/teacher/tests/${id}/review` as const,
+  TEACHER_TEST_ANALYTICS: (id: string) => `/teacher/tests/${id}/analytics` as const,
 
   // Student portal
   STUDENT_DASHBOARD: '/student/dashboard',

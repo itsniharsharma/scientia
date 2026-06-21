@@ -14,6 +14,7 @@ import { TestListPage } from '../pages/teacher/TestListPage';
 import { TestCreatePage } from '../pages/teacher/TestCreatePage';
 import { TestDetailPage } from '../pages/teacher/TestDetailPage';
 import { TestReviewPage } from '../pages/teacher/TestReviewPage';
+import { TestAnalyticsPage } from '../pages/teacher/TestAnalyticsPage';
 import { DashboardPage } from '../pages/student/DashboardPage';
 import { StudentTestsPage } from '../pages/student/StudentTestsPage';
 import { InstructionsPage } from '../pages/student/InstructionsPage';
@@ -45,6 +46,7 @@ export function AppRouter() {
           <Route path="/teacher/tests/new" element={<TestCreatePage />} />
           <Route path="/teacher/tests/:testId" element={<TestDetailPage />} />
           <Route path="/teacher/tests/:testId/review" element={<TestReviewPage />} />
+          <Route path="/teacher/tests/:testId/analytics" element={<TestAnalyticsPage />} />
         </Route>
       </Route>
 

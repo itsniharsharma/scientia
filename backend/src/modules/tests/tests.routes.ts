@@ -26,6 +26,9 @@ router.delete('/:testId', TestsController.deleteTest);
 // Replacement pool (must come BEFORE /:testId/questions/:questionId to avoid route shadowing)
 router.get('/:testId/replacement-pool', TestsController.getReplacementPool);
 
+// Analytics
+router.get('/:testId/analytics', TestsController.getTestAnalytics);
+
 // TestQuestion operations
 router.post(
   '/:testId/questions/replacement',

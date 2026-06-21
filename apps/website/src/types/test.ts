@@ -71,3 +71,20 @@ export interface ReplacementPoolQuestion {
   appearanceCount: number;
   options: TestOptionSnapshot[];
 }
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+export interface TestAnalyticsStudentDto {
+  username: string;
+  score: number;
+}
+
+export interface TestAnalyticsDto {
+  test: { id: string; name: string };
+  summary: {
+    highestScore: number | null;
+    lowestScore: number | null;
+    averageScore: number | null;
+  };
+  students: TestAnalyticsStudentDto[];
+}

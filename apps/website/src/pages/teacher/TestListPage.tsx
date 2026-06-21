@@ -43,6 +43,14 @@ function TestCard({ test, onDelete }: { test: TestDto; onDelete: (id: string) =>
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {test.status === 'COMPLETED' && (
+            <button
+              onClick={() => navigate(ROUTES.TEACHER_TEST_ANALYTICS(test.id))}
+              className="rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-50 transition-colors"
+            >
+              View Analytics
+            </button>
+          )}
           <button
             onClick={() => navigate(ROUTES.TEACHER_TEST_REVIEW(test.id))}
             className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
