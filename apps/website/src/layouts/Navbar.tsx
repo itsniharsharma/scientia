@@ -4,6 +4,83 @@ import { Container } from '../components/Container';
 import { ROUTES } from '../routes';
 import { useAuthStore } from '../store/auth.store';
 
+// ─── Login dropdown ───────────────────────────────────────────────────────────
+
+function LoginDropdown() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus:outline-none"
+      >
+        Log In
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 14 14"
+          fill="none"
+          className={`transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+        >
+          <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-11 z-50 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1.5 shadow-lg">
+          <Link
+            to={ROUTES.STUDENT_LOGIN}
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors"
+          >
+            <StudentLoginIcon />
+            Student
+          </Link>
+          <div className="mx-3 my-1 border-t border-slate-100" />
+          <Link
+            to={ROUTES.TEACHER_LOGIN}
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors"
+          >
+            <TeacherLoginIcon />
+            Teacher
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StudentLoginIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <path d="M7.5 2L13 5v1L7.5 9 2 6V5L7.5 2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+      <path d="M4.5 7v4c0 1.2 1.7 2 3 2s3-.8 3-2V7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TeacherLoginIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <rect x="2" y="2.5" width="9" height="7" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M5 9.5v3M10 9.5v3M3.5 12.5h8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M4.5 5.5h4M4.5 4h2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 // ─── Avatar dropdown ──────────────────────────────────────────────────────────
 
 function AvatarDropdown({
@@ -237,20 +314,15 @@ export function Navbar() {
           )}
 
           {/* Desktop right */}
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden items-center gap-2 md:flex">
             {!isAuthenticated ? (
               <>
+                <LoginDropdown />
                 <Link
-                  to={ROUTES.STUDENT_LOGIN}
-                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
-                >
-                  Student Login
-                </Link>
-                <Link
-                  to={ROUTES.TEACHER_LOGIN}
+                  to={ROUTES.SIGNUP}
                   className="rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-800"
                 >
-                  Teacher Login
+                  Sign Up →
                 </Link>
               </>
             ) : (
@@ -294,14 +366,20 @@ export function Navbar() {
                   </Link>
                   <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-4">
                     <Link
+                      to={ROUTES.SIGNUP}
+                      className="rounded-xl bg-brand-700 px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-800"
+                    >
+                      Sign Up →
+                    </Link>
+                    <Link
                       to={ROUTES.STUDENT_LOGIN}
-                      className="rounded-xl border border-brand-700 px-4 py-3 text-center text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
+                      className="rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
                     >
                       Student Login
                     </Link>
                     <Link
                       to={ROUTES.TEACHER_LOGIN}
-                      className="rounded-xl bg-brand-700 px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-800"
+                      className="rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
                     >
                       Teacher Login
                     </Link>

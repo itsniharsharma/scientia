@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
+import 'katex/contrib/mhchem';
 
 interface LatexContentProps {
   content: string | null | undefined;
