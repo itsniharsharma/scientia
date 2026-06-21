@@ -36,6 +36,8 @@ export const generateTestSchema = z.object({
   scheduledAt: z
     .string({ required_error: 'Schedule date is required' })
     .datetime({ message: 'Invalid date format' }),
+
+  batchId: z.string().min(1, 'Batch is required').optional(),
 });
 
 export type GenerateTestInput = z.infer<typeof generateTestSchema>;

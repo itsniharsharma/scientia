@@ -106,7 +106,8 @@ model Teacher {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tests Test[]
+  tests   Test[]
+  batches Batch[]
 
   @@map("teachers")
 }
@@ -121,8 +122,37 @@ model Student {
   updatedAt DateTime @updatedAt
 
   attempts Attempt[]
+  batches  BatchStudent[]
 
   @@map("students")
+}
+
+// ─── Batches ─────────────────────────────────────────────────────────────────
+
+model Batch {
+  id        String   @id @default(cuid())
+  name      String
+  teacherId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacher  Teacher        @relation(fields: [teacherId], references: [id])
+  students BatchStudent[]
+  tests    Test[]
+
+  @@map("batches")
+}
+
+model BatchStudent {
+  batchId   String
+  studentId String
+  joinedAt  DateTime @default(now())
+
+  batch   Batch   @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([batchId, studentId])
+  @@map("batch_students")
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -138,6 +168,7 @@ model Test {
   name            String
   teacherId       String
   subjectId       String
+  batchId         String?
   durationMinutes Int
   scheduledAt     DateTime
   status          TestStatus @default(DRAFT)
@@ -146,6 +177,7 @@ model Test {
 
   teacher       Teacher        @relation(fields: [teacherId], references: [id])
   subject       Subject        @relation(fields: [subjectId], references: [id])
+  batch         Batch?         @relation(fields: [batchId], references: [id])
   testQuestions TestQuestion[]
   attempts      Attempt[]
 

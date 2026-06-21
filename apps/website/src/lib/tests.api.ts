@@ -37,6 +37,7 @@ export async function generateTest(data: {
   questionCount: number;
   durationMinutes: number;
   scheduledAt: string;
+  batchId?: string;
 }): Promise<TestWithQuestionsDto> {
   const res = await api.post<TestWithQuestionsDto>('/tests/generate', data);
   return res.data;

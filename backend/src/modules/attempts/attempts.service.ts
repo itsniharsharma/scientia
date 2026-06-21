@@ -349,10 +349,19 @@ export async function getAttemptReview(attemptId: string, studentId: string) {
 
 export async function listScheduledTests(studentId: string) {
   const tests = await prisma.test.findMany({
-    where: { status: 'SCHEDULED' },
+    where: {
+      status: 'SCHEDULED',
+      OR: [
+        // Tests in batches the student belongs to
+        { batch: { students: { some: { studentId } } } },
+        // Legacy tests with no batch (visible to all students)
+        { batchId: null },
+      ],
+    },
     include: {
       _count: { select: { testQuestions: true } },
       attempts: { where: { studentId }, select: { id: true, status: true } },
+      batch: { select: { name: true } },
     },
     orderBy: { scheduledAt: 'asc' },
   });
@@ -364,6 +373,7 @@ export async function listScheduledTests(studentId: string) {
       return {
         id: t.id,
         name: t.name,
+        batchName: t.batch?.name ?? null,
         scheduledAt: t.scheduledAt.toISOString(),
         durationMinutes: t.durationMinutes,
         questionCount: t._count.testQuestions,
@@ -379,7 +389,7 @@ export async function listScheduledTests(studentId: string) {
 }
 
 export async function getStudentDashboard(studentId: string) {
-  const [upcomingTests, recentAttempts] = await Promise.all([
+  const [upcomingTests, recentAttempts, submittedStats] = await Promise.all([
     listScheduledTests(studentId),
     prisma.attempt.findMany({
       where: { studentId, status: { in: ['SUBMITTED', 'EXPIRED'] } },
@@ -387,16 +397,19 @@ export async function getStudentDashboard(studentId: string) {
       orderBy: { submittedAt: 'desc' },
       take: 5,
     }),
+    // Aggregate over ALL submitted attempts for accurate stats
+    prisma.attempt.aggregate({
+      where: { studentId, status: 'SUBMITTED' },
+      _count: { id: true },
+      _avg: { score: true },
+    }),
   ]);
 
-  const submitted = recentAttempts.filter((a) => a.status === 'SUBMITTED');
-  const totalAttempts = submitted.length;
+  const totalAttempts = submittedStats._count.id;
   const averageScore =
-    totalAttempts === 0
-      ? null
-      : Math.round(
-          submitted.reduce((sum, a) => sum + (a.score ?? 0), 0) / totalAttempts,
-        );
+    submittedStats._avg.score !== null
+      ? Math.round(submittedStats._avg.score)
+      : null;
 
   return {
     upcomingTests: upcomingTests.filter((t) => !t.attempted),

@@ -21,11 +21,17 @@ import { Prisma } from '@prisma/client';
 // ─── DTOs ────────────────────────────────────────────────────────────────────
 
 type TestWithCount = Prisma.TestGetPayload<{
-  include: { _count: { select: { testQuestions: true } } };
+  include: {
+    _count: { select: { testQuestions: true } };
+    batch: { select: { name: true } };
+  };
 }>;
 
 type TestWithQuestions = Prisma.TestGetPayload<{
-  include: { testQuestions: { orderBy: { position: 'asc' } } };
+  include: {
+    testQuestions: { orderBy: { position: 'asc' } };
+    batch: { select: { name: true } };
+  };
 }>;
 
 type TQ = Prisma.TestQuestionGetPayload<Record<string, never>>;
@@ -36,6 +42,8 @@ function toTestDto(t: TestWithCount): TestDto {
     name: t.name,
     teacherId: t.teacherId,
     subjectId: t.subjectId,
+    batchId: t.batchId,
+    batchName: t.batch?.name ?? null,
     durationMinutes: t.durationMinutes,
     scheduledAt: t.scheduledAt.toISOString(),
     status: resolveTestStatus(t) as TestDto['status'],
@@ -67,6 +75,8 @@ function toTestWithQuestionsDto(t: TestWithQuestions): TestWithQuestionsDto {
     name: t.name,
     teacherId: t.teacherId,
     subjectId: t.subjectId,
+    batchId: t.batchId,
+    batchName: t.batch?.name ?? null,
     durationMinutes: t.durationMinutes,
     scheduledAt: t.scheduledAt.toISOString(),
     status: resolveTestStatus(t) as TestWithQuestionsDto['status'],
@@ -99,7 +109,10 @@ export async function generateTest(
 export async function listTests(teacherId: string): Promise<TestDto[]> {
   const tests = await prisma.test.findMany({
     where: { teacherId },
-    include: { _count: { select: { testQuestions: true } } },
+    include: {
+      _count: { select: { testQuestions: true } },
+      batch: { select: { name: true } },
+    },
     orderBy: { createdAt: 'desc' },
   });
   return tests.map(toTestDto);
@@ -112,7 +125,10 @@ export async function getTest(
   await requireTestOwner(testId, teacherId);
   const test = await prisma.test.findUnique({
     where: { id: testId },
-    include: { testQuestions: { orderBy: { position: 'asc' } } },
+    include: {
+      testQuestions: { orderBy: { position: 'asc' } },
+      batch: { select: { name: true } },
+    },
   });
   return toTestWithQuestionsDto(test!);
 }
@@ -130,7 +146,10 @@ export async function updateTest(
       ...(data.scheduledAt !== undefined && { scheduledAt: new Date(data.scheduledAt) }),
       ...(data.status !== undefined && { status: data.status }),
     },
-    include: { _count: { select: { testQuestions: true } } },
+    include: {
+      _count: { select: { testQuestions: true } },
+      batch: { select: { name: true } },
+    },
   });
   return toTestDto(updated);
 }

@@ -28,6 +28,9 @@ function UpcomingTestCard({ test }: { test: ScheduledTestDto }) {
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-slate-900 truncate">{test.name}</h3>
+          {test.batchName && (
+            <p className="mt-0.5 text-xs text-slate-400">{test.batchName}</p>
+          )}
           <p className="mt-1 text-sm text-slate-500">
             {test.questionCount} questions &middot; {test.durationMinutes} min
           </p>
@@ -60,32 +63,24 @@ function RecentAttemptCard({ attempt }: { attempt: AttemptSummaryDto }) {
       onClick={() => isReviewable && navigate(ROUTES.STUDENT_REVIEW(attempt.id))}
       className={[
         'rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition',
-        isReviewable
-          ? 'cursor-pointer hover:shadow-lg hover:border-slate-200'
-          : '',
+        isReviewable ? 'cursor-pointer hover:shadow-lg hover:border-slate-200' : '',
       ].join(' ')}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-slate-900 truncate">{attempt.testName}</h3>
-          <p className="mt-1 text-sm text-slate-500">
-            {attempt.questionCount} questions
-          </p>
+          <p className="mt-1 text-sm text-slate-500">{attempt.questionCount} questions</p>
           <p className="mt-0.5 text-xs text-slate-400">
             {attempt.submittedAt ? formatDate(attempt.submittedAt) : '—'}
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <div className="text-right">
-            <p className={`text-xl font-bold ${scoreColor}`}>
-              {attempt.score ?? '—'}
-            </p>
+            <p className={`text-xl font-bold ${scoreColor}`}>{attempt.score ?? '—'}</p>
             <p className="text-xs text-slate-400">score</p>
           </div>
           {isReviewable && (
-            <span className="text-xs font-medium text-brand-700">
-              Review →
-            </span>
+            <span className="text-xs font-medium text-brand-700">Review →</span>
           )}
         </div>
       </div>
@@ -135,7 +130,6 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h1>
         <p className="mt-1 text-sm text-slate-500">Welcome back. Here's your exam overview.</p>
@@ -151,12 +145,12 @@ export function DashboardPage() {
         <StatCard label="Upcoming Tests" value={upcomingTests.length} />
       </div>
 
-      {/* Upcoming Tests */}
+      {/* Upcoming Tests preview */}
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-800">Upcoming Tests</h2>
           <Link
-            to={ROUTES.STUDENT_TESTS}
+            to={ROUTES.STUDENT_UPCOMING_TESTS}
             className="text-sm font-medium text-brand-700 hover:text-brand-800"
           >
             View all →
@@ -175,16 +169,24 @@ export function DashboardPage() {
         )}
       </section>
 
-      {/* Recent Attempts */}
+      {/* Recent Attempts preview */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-slate-800">Recent Attempts</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-800">Recent Tests</h2>
+          <Link
+            to={ROUTES.STUDENT_RECENT_TESTS}
+            className="text-sm font-medium text-brand-700 hover:text-brand-800"
+          >
+            View all →
+          </Link>
+        </div>
         {recentAttempts.length === 0 ? (
           <div className="rounded-2xl border-2 border-dashed border-slate-200 p-10 text-center">
             <p className="text-sm text-slate-400">You haven't taken any tests yet.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {recentAttempts.map((a) => (
+            {recentAttempts.slice(0, 3).map((a) => (
               <RecentAttemptCard key={a.id} attempt={a} />
             ))}
           </div>

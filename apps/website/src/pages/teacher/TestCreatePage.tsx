@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   fetchSubjects,
@@ -97,6 +97,8 @@ function StepCard({
 
 export function TestCreatePage() {
   const navigate = useNavigate();
+  // batchId is optional — present when navigating from /teacher/batches/:batchId/tests/new
+  const { batchId } = useParams<{ batchId?: string }>();
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
@@ -135,7 +137,13 @@ export function TestCreatePage() {
 
   const generateMutation = useMutation({
     mutationFn: generateTest,
-    onSuccess: (data) => navigate(ROUTES.TEACHER_TEST_REVIEW(data.id)),
+    onSuccess: (data) => {
+      if (batchId) {
+        navigate(ROUTES.TEACHER_BATCH(batchId));
+      } else {
+        navigate(ROUTES.TEACHER_TEST_REVIEW(data.id));
+      }
+    },
     onError: (err: unknown) => {
       const msg =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
@@ -167,8 +175,12 @@ export function TestCreatePage() {
       questionCount,
       durationMinutes,
       scheduledAt: new Date(scheduledAt).toISOString(),
+      ...(batchId ? { batchId } : {}),
     });
   };
+
+  const backTarget = batchId ? ROUTES.TEACHER_BATCH(batchId) : ROUTES.TEACHER_TESTS;
+  const backLabel = batchId ? '← Back to Batch' : '← Back to All Tests';
 
   const inputClass =
     'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-700 focus:ring-offset-1 placeholder:text-slate-400';
@@ -177,10 +189,10 @@ export function TestCreatePage() {
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
         <button
-          onClick={() => navigate(ROUTES.TEACHER_TESTS)}
+          onClick={() => navigate(backTarget)}
           className="text-sm text-slate-500 hover:text-slate-800"
         >
-          ← Back to My Tests
+          {backLabel}
         </button>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
           Generate New Test

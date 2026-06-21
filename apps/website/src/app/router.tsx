@@ -15,12 +15,20 @@ import { TestCreatePage } from '../pages/teacher/TestCreatePage';
 import { TestDetailPage } from '../pages/teacher/TestDetailPage';
 import { TestReviewPage } from '../pages/teacher/TestReviewPage';
 import { TestAnalyticsPage } from '../pages/teacher/TestAnalyticsPage';
+import BatchesPage from '../pages/teacher/BatchesPage';
+import BatchDetailPage from '../pages/teacher/BatchDetailPage';
+import TeacherProfilePage from '../pages/teacher/TeacherProfilePage';
 import { DashboardPage } from '../pages/student/DashboardPage';
 import { StudentTestsPage } from '../pages/student/StudentTestsPage';
 import { InstructionsPage } from '../pages/student/InstructionsPage';
 import { ExamRunnerPage } from '../pages/student/ExamRunnerPage';
 import { ResultPage } from '../pages/student/ResultPage';
 import { AttemptReviewPage } from '../pages/student/AttemptReviewPage';
+import StudentBatchesPage from '../pages/student/StudentBatchesPage';
+import StudentBatchDetailPage from '../pages/student/StudentBatchDetailPage';
+import UpcomingTestsPage from '../pages/student/UpcomingTestsPage';
+import RecentTestsPage from '../pages/student/RecentTestsPage';
+import StudentProfilePage from '../pages/student/StudentProfilePage';
 
 export function AppRouter() {
   return (
@@ -42,25 +50,32 @@ export function AppRouter() {
       {/* Teacher portal — requires TEACHER role */}
       <Route element={<ProtectedRoute allowedRoles={['TEACHER']} redirectTo="/teacher/login" />}>
         <Route element={<TeacherLayout />}>
+          <Route path="/teacher/batches" element={<BatchesPage />} />
+          <Route path="/teacher/batches/:batchId" element={<BatchDetailPage />} />
+          <Route path="/teacher/batches/:batchId/tests/new" element={<TestCreatePage />} />
           <Route path="/teacher/tests" element={<TestListPage />} />
           <Route path="/teacher/tests/new" element={<TestCreatePage />} />
           <Route path="/teacher/tests/:testId" element={<TestDetailPage />} />
           <Route path="/teacher/tests/:testId/review" element={<TestReviewPage />} />
           <Route path="/teacher/tests/:testId/analytics" element={<TestAnalyticsPage />} />
+          <Route path="/teacher/profile" element={<TeacherProfilePage />} />
         </Route>
       </Route>
 
       {/* Student portal — requires STUDENT role */}
       <Route element={<ProtectedRoute allowedRoles={['STUDENT']} redirectTo="/student/login" />}>
         {/* Full-screen exam runner — no layout chrome */}
-        <Route
-          path="/student/attempts/:attemptId/exam"
-          element={<ExamRunnerPage />}
-        />
+        <Route path="/student/attempts/:attemptId/exam" element={<ExamRunnerPage />} />
 
         {/* Standard student layout pages */}
         <Route element={<StudentLayout />}>
           <Route path="/student/dashboard" element={<DashboardPage />} />
+          <Route path="/student/batches" element={<StudentBatchesPage />} />
+          <Route path="/student/batches/:batchId" element={<StudentBatchDetailPage />} />
+          <Route path="/student/upcoming-tests" element={<UpcomingTestsPage />} />
+          <Route path="/student/recent-tests" element={<RecentTestsPage />} />
+          <Route path="/student/profile" element={<StudentProfilePage />} />
+          {/* Legacy route — kept alive so existing links and bookmarks don't break */}
           <Route path="/student/tests" element={<StudentTestsPage />} />
           <Route path="/student/tests/:testId/instructions" element={<InstructionsPage />} />
           <Route path="/student/attempts/:attemptId/result" element={<ResultPage />} />

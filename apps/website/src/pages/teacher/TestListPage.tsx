@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { listTests, deleteTest } from '../../lib/tests.api';
 import { ROUTES } from '../../routes';
 import type { TestDto, TestStatus } from '../../types/test';
@@ -33,6 +33,14 @@ function TestCard({ test, onDelete }: { test: TestDto; onDelete: (id: string) =>
             >
               {test.status}
             </span>
+            {test.batchName && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {test.batchName}
+              </span>
+            )}
           </div>
           <h3 className="text-base font-semibold text-slate-900 truncate">{test.name}</h3>
           <p className="mt-1 text-sm text-slate-500">
@@ -94,19 +102,11 @@ export function TestListPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">My Tests</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Manage and schedule your generated tests.
-          </p>
-        </div>
-        <Link
-          to={ROUTES.TEACHER_TEST_NEW}
-          className="rounded-xl bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 transition-colors"
-        >
-          + Generate New Test
-        </Link>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">All Tests</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          All tests across your batches. To create a new test, go to a batch and click "Generate Test".
+        </p>
       </div>
 
       {isLoading && (
@@ -125,13 +125,13 @@ export function TestListPage() {
         <div className="rounded-2xl border-2 border-dashed border-slate-200 p-16 text-center">
           <p className="text-slate-500 font-medium">No tests yet.</p>
           <p className="mt-1 text-sm text-slate-400">
-            Generate your first test to get started.
+            Create a batch and generate tests from the batch detail page.
           </p>
           <Link
-            to={ROUTES.TEACHER_TEST_NEW}
+            to={ROUTES.TEACHER_BATCHES}
             className="mt-4 inline-block rounded-xl bg-brand-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-800"
           >
-            Generate Test
+            Go to Batches
           </Link>
         </div>
       )}

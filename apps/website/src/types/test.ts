@@ -32,6 +32,8 @@ export interface TestDto {
   name: string;
   teacherId: string;
   subjectId: string;
+  batchId: string | null;
+  batchName: string | null;
   durationMinutes: number;
   scheduledAt: string;
   status: TestStatus;

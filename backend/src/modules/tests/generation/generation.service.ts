@@ -41,7 +41,7 @@ export async function generateAndPersistTest(
   teacherId: string,
   data: GenerateTestInput,
 ) {
-  const { name, subjectId, topicIds, questionCount, durationMinutes, scheduledAt } = data;
+  const { name, subjectId, topicIds, questionCount, durationMinutes, scheduledAt, batchId } = data;
 
   const candidates = await fetchCandidates(topicIds);
 
@@ -64,6 +64,7 @@ export async function generateAndPersistTest(
         name,
         teacherId,
         subjectId,
+        batchId: batchId ?? null,
         durationMinutes,
         scheduledAt: new Date(scheduledAt),
         status: 'DRAFT',
@@ -96,9 +97,12 @@ export async function generateAndPersistTest(
     return test;
   });
 
-  // Return test with questions
+  // Return test with questions and batch
   return prisma.test.findUnique({
     where: { id: result.id },
-    include: { testQuestions: { orderBy: { position: 'asc' } } },
+    include: {
+      testQuestions: { orderBy: { position: 'asc' } },
+      batch: { select: { name: true } },
+    },
   });
 }

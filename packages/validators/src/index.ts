@@ -5,3 +5,4 @@ export * from './question.schema';
 export * from './auth.schema';
 export * from './test.schema';
 export * from './attempt.schema';
+export * from './batch.schema';

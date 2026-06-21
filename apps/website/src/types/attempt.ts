@@ -45,6 +45,7 @@ export interface AttemptWithDetailsDto extends AttemptDto {
 export interface ScheduledTestDto {
   id: string;
   name: string;
+  batchName: string | null;
   scheduledAt: string;
   durationMinutes: number;
   questionCount: number;
