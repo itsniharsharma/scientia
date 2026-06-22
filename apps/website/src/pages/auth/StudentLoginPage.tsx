@@ -30,7 +30,7 @@ export function StudentLoginPage() {
     setServerError(null);
     try {
       const result = await loginStudent(data);
-      setAuth(result.user, result.token);
+      setAuth(result.user);
       navigate(ROUTES.STUDENT_DASHBOARD);
     } catch (err: unknown) {
       const msg =

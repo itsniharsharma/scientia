@@ -114,12 +114,15 @@ export async function getAttempt(
 ): Promise<AttemptWithDetailsDto> {
   const attempt = await requireAttemptOwner(attemptId, studentId);
 
-  const test = await prisma.test.findUnique({
-    where: { id: attempt.testId },
-    include: { testQuestions: { orderBy: { position: 'asc' } } },
-  });
+  const [test, savedResponses] = await Promise.all([
+    prisma.test.findUnique({
+      where: { id: attempt.testId },
+      include: { testQuestions: { orderBy: { position: 'asc' } } },
+    }),
+    prisma.response.findMany({ where: { attemptId } }),
+  ]);
 
-  return buildAttemptWithDetails(attempt, test!);
+  return buildAttemptWithDetails(attempt, test!, savedResponses);
 }
 
 export async function saveResponses(
@@ -185,8 +188,8 @@ export async function submitAttempt(
 
   // Score each individual response and persist
   const now = new Date();
-  await prisma.$transaction([
-    ...responses.map((r) => {
+  await prisma.$transaction(
+    responses.map((r) => {
       const { isCorrect } = scoreResponse(
         r.testQuestion.questionType as 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER',
         r.selectedAnswerJson as SelectedAnswer | null,
@@ -197,21 +200,13 @@ export async function submitAttempt(
         data: { isCorrect: isCorrect ?? false },
       });
     }),
-    prisma.attempt.update({
-      where: { id: attemptId },
-      data: {
-        status: 'SUBMITTED',
-        submittedAt: now,
-        score: totalScore,
-        correctCount,
-        wrongCount,
-        unattemptedCount,
-      },
-    }),
-  ]);
+  );
 
-  const finalAttempt = await prisma.attempt.findUnique({ where: { id: attemptId } });
-  return toAttemptDto(finalAttempt!);
+  const finalAttempt = await prisma.attempt.update({
+    where: { id: attemptId },
+    data: { status: 'SUBMITTED', submittedAt: now, score: totalScore, correctCount, wrongCount, unattemptedCount },
+  });
+  return toAttemptDto(finalAttempt);
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -238,6 +233,7 @@ function buildAttemptWithDetails(
       updatedAt: Date;
     }[];
   },
+  savedResponses: Prisma.ResponseGetPayload<Record<string, never>>[] = [],
 ): AttemptWithDetailsDto {
   const testMeta: AttemptTestMeta = {
     id: test.id,
@@ -266,7 +262,7 @@ function buildAttemptWithDetails(
     ...toAttemptDto(attempt),
     test: testMeta,
     questions,
-    responses: [],
+    responses: savedResponses.map(toResponseDto),
   };
 }
 

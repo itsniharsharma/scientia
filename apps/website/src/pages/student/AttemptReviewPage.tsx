@@ -107,7 +107,10 @@ function AnswerSummary({ question }: { question: ReviewQuestion }) {
   const optionLabel = (id: string) => {
     const idx = options.findIndex((o) => o.id === id);
     const opt = options[idx];
-    return idx >= 0 ? `${String.fromCharCode(65 + idx)}. ${opt?.optionText ?? ''}` : id;
+    if (idx < 0) return id;
+    const letter = String.fromCharCode(65 + idx);
+    const label = opt?.optionText ?? (opt?.optionImageUrl ? '[Image]' : opt?.latexContent ? '[LaTeX]' : '');
+    return `${letter}. ${label}`;
   };
 
   const yourAnswerText =

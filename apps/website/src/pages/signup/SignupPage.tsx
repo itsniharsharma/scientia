@@ -184,7 +184,7 @@ function StudentSignupForm({ onBack }: { onBack: () => void }) {
         username: data.username,
         password: data.password,
       });
-      setAuth(result.user, result.token);
+      setAuth(result.user);
       navigate(ROUTES.STUDENT_DASHBOARD);
     } catch (err: unknown) {
       const msg =

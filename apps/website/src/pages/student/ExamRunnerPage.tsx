@@ -280,6 +280,8 @@ export function ExamRunnerPage() {
   const autosaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pendingSaveRef = useRef<Set<string>>(new Set());
+  // Stable ref so the autosave interval always calls the latest flush without restarting
+  const flushPendingSaveRef = useRef<() => void>(() => {});
 
   // ── Load attempt on mount ───────────────────────────────────────────────────
   useEffect(() => {
@@ -333,16 +335,16 @@ export function ExamRunnerPage() {
     return () => clearInterval(countdownRef.current!);
   }, [attempt, loading]);
 
-  // ── 30-second autosave ──────────────────────────────────────────────────────
+  // ── 30-second autosave — started once, never restarted on answer changes ────
   useEffect(() => {
     if (!attempt || loading) return;
 
     autosaveTimerRef.current = setInterval(() => {
-      flushPendingSave();
+      flushPendingSaveRef.current();
     }, 30_000);
 
     return () => clearInterval(autosaveTimerRef.current!);
-  }, [attempt, loading, responses]);
+  }, [attempt, loading]);
 
   // ── Persist local state on index/visited/marked changes ─────────────────────
   useEffect(() => {
@@ -379,6 +381,9 @@ export function ExamRunnerPage() {
       ids.forEach((id) => pendingSaveRef.current.add(id));
     });
   }, [attemptId, responses]);
+
+  // Keep the ref in sync so the stable interval always calls the latest version
+  flushPendingSaveRef.current = flushPendingSave;
 
   // ─── Answer change ───────────────────────────────────────────────────────────
   const handleAnswerChange = useCallback(

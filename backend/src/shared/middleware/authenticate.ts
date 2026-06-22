@@ -11,14 +11,18 @@ interface JwtPayload {
 }
 
 export function authenticate(req: Request, _res: Response, next: NextFunction): void {
+  // Cookie takes priority; Bearer header retained for backwards-compat (API clients, tests)
+  const cookieToken: string | undefined = req.cookies?.auth_token;
   const authHeader = req.headers.authorization;
+  const bearerToken =
+    authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    next(new UnauthorizedError('Authorization header is missing or malformed'));
+  const token = cookieToken ?? bearerToken;
+
+  if (!token) {
+    next(new UnauthorizedError('No authentication token provided'));
     return;
   }
-
-  const token = authHeader.slice(7);
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;

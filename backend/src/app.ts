@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import authRouter from './modules/auth/auth.routes';
 import testsRouter from './modules/tests/tests.routes';
 import attemptsRouter from './modules/attempts/attempts.routes';
@@ -21,6 +22,8 @@ import {
 } from './modules/questions/questions.routes';
 import cloudinaryRouter from './modules/cloudinary/cloudinary.routes';
 import { errorHandler } from './shared/middleware/error-handler';
+import { requestId } from './shared/middleware/request-id';
+import { requestTimeout } from './shared/middleware/timeout';
 
 const app = express();
 
@@ -32,8 +35,12 @@ app.use(
       if (!origin || allowedOrigins.has(origin)) callback(null, true);
       else callback(new Error('CORS: origin not allowed'));
     },
+    credentials: true,
   }),
 );
+app.use(cookieParser());
+app.use(requestId);
+app.use(requestTimeout);
 app.use(express.json());
 
 app.use('/auth', authRouter);

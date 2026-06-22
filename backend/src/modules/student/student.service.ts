@@ -28,18 +28,18 @@ export async function listStudentBatches(studentId: string) {
 export async function getStudentBatch(batchId: string, studentId: string) {
   const enrollment = await prisma.batchStudent.findUnique({
     where: { batchId_studentId: { batchId, studentId } },
+    include: {
+      batch: {
+        include: {
+          teacher: { select: { username: true } },
+          _count: { select: { students: true, tests: true } },
+        },
+      },
+    },
   });
   if (!enrollment) throw new ForbiddenError('You are not enrolled in this batch');
 
-  const batch = await prisma.batch.findUnique({
-    where: { id: batchId },
-    include: {
-      teacher: { select: { username: true } },
-      _count: { select: { students: true, tests: true } },
-    },
-  });
-  if (!batch) throw new NotFoundError('Batch not found');
-
+  const { batch } = enrollment;
   return {
     id: batch.id,
     name: batch.name,

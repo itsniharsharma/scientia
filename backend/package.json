@@ -7,6 +7,8 @@
     "build": "tsc --noEmit",
     "start": "tsx --env-file ../.env src/index.ts",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "db:generate": "prisma generate --env-file ../.env",
     "db:migrate": "prisma migrate dev --env-file ../.env",
     "db:migrate:deploy": "prisma migrate deploy --env-file ../.env"
@@ -16,9 +18,12 @@
   },
   "dependencies": {
     "@prisma/client": "^5.17.0",
+    "@types/cookie-parser": "^1.4.10",
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^4.19.2",
+    "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.2",
     "zod": "^3.23.8"
   },
@@ -29,9 +34,13 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.14.10",
     "@types/pdf-parse": "^1.1.5",
+    "@types/supertest": "^7.2.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "pdf-parse": "^2.4.5",
     "prisma": "^5.17.0",
+    "supertest": "^7.2.2",
     "tsx": "^4.16.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.9"
   }
 }

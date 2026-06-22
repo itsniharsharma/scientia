@@ -30,7 +30,7 @@ export function TeacherLoginPage() {
     setServerError(null);
     try {
       const result = await loginTeacher(data);
-      setAuth(result.user, result.token);
+      setAuth(result.user);
       navigate(ROUTES.TEACHER_TESTS);
     } catch (err: unknown) {
       const msg =

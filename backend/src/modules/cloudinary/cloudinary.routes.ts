@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import crypto from 'crypto';
+import { authenticate } from '../../shared/middleware/authenticate';
+import { requireRole } from '../../shared/middleware/require-role';
 
 const router = Router();
 
-router.post('/sign', (req, res) => {
+router.post('/sign', authenticate, requireRole('TEACHER'), (req, res) => {
   const { timestamp } = req.body as { timestamp?: unknown };
 
   if (typeof timestamp !== 'string' || !/^\d+$/.test(timestamp)) {

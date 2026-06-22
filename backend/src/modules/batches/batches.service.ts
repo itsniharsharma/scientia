@@ -127,14 +127,18 @@ export async function addStudentToBatch(
   });
   if (!student) throw new NotFoundError(`No student found with username "${data.username}"`);
 
-  const existing = await prisma.batchStudent.findUnique({
-    where: { batchId_studentId: { batchId, studentId: student.id } },
-  });
-  if (existing) throw new ConflictError('Student is already in this batch');
-
-  const bs = await prisma.batchStudent.create({
-    data: { batchId, studentId: student.id },
-  });
+  // Let the DB unique constraint do the conflict check instead of a preflight query
+  let bs;
+  try {
+    bs = await prisma.batchStudent.create({
+      data: { batchId, studentId: student.id },
+    });
+  } catch (err) {
+    if ((err as { code?: string }).code === 'P2002') {
+      throw new ConflictError('Student is already in this batch');
+    }
+    throw err;
+  }
 
   return {
     studentId: student.id,

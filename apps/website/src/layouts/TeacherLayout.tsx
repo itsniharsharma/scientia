@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
+import { logout } from '../lib/auth.api';
 import { ROUTES } from '../routes';
 
 const NAV_ITEMS = [
@@ -41,7 +42,8 @@ export function TeacherLayout() {
   const username = user && 'username' in user ? user.username : '';
   const initial = username.charAt(0).toUpperCase();
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    try { await logout(); } catch { /* cookie cleared server-side; ignore network errors */ }
     clearAuth();
     navigate(ROUTES.HOME);
   };

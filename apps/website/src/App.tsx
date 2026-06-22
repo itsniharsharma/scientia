@@ -7,14 +7,14 @@ import { useAuthStore } from './store/auth.store';
 import { getCurrentUser } from './lib/auth.api';
 
 function AuthHydrator({ children }: { children: ReactNode }) {
-  const { token, setAuth, clearAuth } = useAuthStore();
+  const { setAuth, clearAuth } = useAuthStore();
 
   useEffect(() => {
-    if (!token) return;
+    // Always probe /auth/me on mount — the httpOnly cookie carries the session.
+    // If valid: refreshes user object from DB. If not: clears stale Zustand state.
     getCurrentUser()
-      .then((user) => setAuth(user, token))
+      .then((user) => setAuth(user))
       .catch(() => clearAuth());
-    // Run once on mount to validate stored token against the server
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <>{children}</>;

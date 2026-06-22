@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Container } from '../components/Container';
 import { ROUTES } from '../routes';
 import { useAuthStore } from '../store/auth.store';
+import { logout } from '../lib/auth.api';
 
 // ─── Login dropdown ───────────────────────────────────────────────────────────
 
@@ -259,7 +260,8 @@ export function Navbar() {
     return () => document.removeEventListener('keydown', onKey);
   }, [menuOpen]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await logout(); } catch { /* cookie cleared server-side; ignore network errors */ }
     clearAuth();
     navigate(ROUTES.HOME);
   };

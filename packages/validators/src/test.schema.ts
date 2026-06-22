@@ -5,6 +5,7 @@ const optionSnapshotSchema = z.object({
   position: z.number().int().min(1),
   optionText: z.string().nullable().optional(),
   optionImageUrl: z.string().nullable().optional(),
+  latexContent: z.string().nullable().optional(),
   isCorrect: z.boolean(),
 });
 

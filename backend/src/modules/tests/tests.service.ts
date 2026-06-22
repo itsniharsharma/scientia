@@ -124,7 +124,6 @@ export async function getTest(
   testId: string,
   teacherId: string,
 ): Promise<TestWithQuestionsDto> {
-  await requireTestOwner(testId, teacherId);
   const test = await prisma.test.findUnique({
     where: { id: testId },
     include: {
@@ -132,7 +131,9 @@ export async function getTest(
       batch: { select: { name: true } },
     },
   });
-  return toTestWithQuestionsDto(test!);
+  if (!test) throw new NotFoundError('Test not found');
+  if (test.teacherId !== teacherId) throw new ForbiddenError('You do not own this test');
+  return toTestWithQuestionsDto(test);
 }
 
 export async function updateTest(
@@ -170,8 +171,10 @@ export async function updateTestQuestion(
   teacherId: string,
   data: UpdateTestQuestionInput,
 ): Promise<TestQuestionDto> {
-  await requireTestOwner(testId, teacherId);
-  const tq = await prisma.testQuestion.findFirst({ where: { id: questionId, testId } });
+  // Single query: verify question belongs to test AND test belongs to teacher
+  const tq = await prisma.testQuestion.findFirst({
+    where: { id: questionId, testId, test: { teacherId } },
+  });
   if (!tq) throw new NotFoundError('Test question not found');
 
   const updated = await prisma.testQuestion.update({
@@ -191,8 +194,9 @@ export async function deleteTestQuestion(
   questionId: string,
   teacherId: string,
 ): Promise<void> {
-  await requireTestOwner(testId, teacherId);
-  const tq = await prisma.testQuestion.findFirst({ where: { id: questionId, testId } });
+  const tq = await prisma.testQuestion.findFirst({
+    where: { id: questionId, testId, test: { teacherId } },
+  });
   if (!tq) throw new NotFoundError('Test question not found');
   await prisma.testQuestion.delete({ where: { id: questionId } });
 }
@@ -248,10 +252,13 @@ export async function reorderTestQuestions(
   teacherId: string,
   data: ReorderTestQuestionsInput,
 ): Promise<void> {
-  await requireTestOwner(testId, teacherId);
+  const test = await prisma.test.findUnique({ where: { id: testId }, select: { teacherId: true } });
+  if (!test) throw new NotFoundError('Test not found');
+  if (test.teacherId !== teacherId) throw new ForbiddenError('You do not own this test');
+
   await prisma.$transaction(
     data.order.map(({ id, position }) =>
-      prisma.testQuestion.update({ where: { id }, data: { position } }),
+      prisma.testQuestion.update({ where: { id, testId }, data: { position } }),
     ),
   );
 }
@@ -263,12 +270,13 @@ export async function createTestQuestion(
   teacherId: string,
   data: CreateTestQuestionInput,
 ): Promise<TestQuestionDto> {
-  await requireTestOwner(testId, teacherId);
+  const [test, agg] = await Promise.all([
+    prisma.test.findUnique({ where: { id: testId }, select: { teacherId: true } }),
+    prisma.testQuestion.aggregate({ where: { testId }, _max: { position: true } }),
+  ]);
+  if (!test) throw new NotFoundError('Test not found');
+  if (test.teacherId !== teacherId) throw new ForbiddenError('You do not own this test');
 
-  const agg = await prisma.testQuestion.aggregate({
-    where: { testId },
-    _max: { position: true },
-  });
   const nextPosition = (agg._max.position ?? 0) + 1;
 
   if (!data.publishToQuestionBank) {

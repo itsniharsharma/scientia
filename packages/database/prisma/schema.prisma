@@ -76,6 +76,8 @@ model Question {
   options       Option[]
   testQuestions TestQuestion[]
 
+  @@index([topicId, status])
+  @@index([status, appearanceCount])
   @@map("questions")
 }
 
@@ -142,6 +144,7 @@ model Batch {
   students BatchStudent[]
   tests    Test[]
 
+  @@index([teacherId])
   @@map("batches")
 }
 
@@ -154,6 +157,7 @@ model BatchStudent {
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@id([batchId, studentId])
+  @@index([studentId])
   @@map("batch_students")
 }
 
@@ -183,6 +187,9 @@ model Test {
   testQuestions TestQuestion[]
   attempts      Attempt[]
 
+  @@index([teacherId])
+  @@index([batchId])
+  @@index([status, scheduledAt])
   @@map("tests")
 }
 
@@ -205,6 +212,8 @@ model TestQuestion {
   responses        Response[]
 
   @@unique([testId, position])
+  @@index([testId])
+  @@index([originalQuestionId])
   @@map("test_questions")
 }
 
@@ -235,6 +244,8 @@ model Attempt {
   responses Response[]
 
   @@unique([studentId, testId])
+  @@index([studentId, status])
+  @@index([testId])
   @@map("attempts")
 }
 
@@ -249,8 +260,10 @@ model Response {
   updatedAt          DateTime  @updatedAt
 
   attempt      Attempt      @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  testQuestion TestQuestion @relation(fields: [testQuestionId], references: [id])
+  testQuestion TestQuestion @relation(fields: [testQuestionId], references: [id], onDelete: Cascade)
 
   @@unique([attemptId, testQuestionId])
+  @@index([attemptId])
+  @@index([testQuestionId])
   @@map("responses")
 }
