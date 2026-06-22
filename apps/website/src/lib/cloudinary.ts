@@ -17,6 +17,7 @@ export async function uploadToCloudinary(blob: Blob, originalFilename: string): 
   const signRes = await fetch(`${API_URL}/cloudinary/sign`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ timestamp }),
   });
 

@@ -181,6 +181,12 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.3
+      prisma:
+        specifier: ^5.17.0
+        version: 5.22.0
+      tsx:
+        specifier: ^4.16.2
+        version: 4.22.4
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -212,15 +218,9 @@ importers:
       pdf-parse:
         specifier: ^2.4.5
         version: 2.4.5
-      prisma:
-        specifier: ^5.17.0
-        version: 5.22.0
       supertest:
         specifier: ^7.2.2
         version: 7.2.2
-      tsx:
-        specifier: ^4.16.2
-        version: 4.22.4
       typescript:
         specifier: ^5.5.4
         version: 5.9.3

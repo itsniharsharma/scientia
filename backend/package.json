@@ -6,6 +6,7 @@
     "dev": "tsx watch --env-file ../.env src/index.ts",
     "build": "tsc --noEmit",
     "start": "tsx --env-file ../.env src/index.ts",
+    "start:prod": "prisma migrate deploy && tsx src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -25,6 +26,8 @@
     "express": "^4.19.2",
     "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.2",
+    "prisma": "^5.17.0",
+    "tsx": "^4.16.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -37,9 +40,7 @@
     "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^2.1.9",
     "pdf-parse": "^2.4.5",
-    "prisma": "^5.17.0",
     "supertest": "^7.2.2",
-    "tsx": "^4.16.2",
     "typescript": "^5.5.4",
     "vitest": "^2.1.9"
   }

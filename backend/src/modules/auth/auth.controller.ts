@@ -4,11 +4,15 @@ import * as AuthService from './auth.service';
 const COOKIE_NAME = 'auth_token';
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 
+const IS_PROD = process.env.NODE_ENV === 'production';
+
 function setAuthCookie(res: Response, token: string): void {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: IS_PROD,
+    // Cross-origin deployments (Vercel ↔ Railway) require SameSite=None + Secure.
+    // In dev (HTTP localhost) SameSite=Lax works fine.
+    sameSite: IS_PROD ? 'none' : 'lax',
     maxAge: COOKIE_MAX_AGE,
   });
 }
@@ -62,8 +66,8 @@ export async function logout(
 ): Promise<void> {
   res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: IS_PROD,
+    sameSite: IS_PROD ? 'none' : 'lax',
   });
   res.status(204).end();
 }

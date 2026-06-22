@@ -27,8 +27,14 @@ import { requestTimeout } from './shared/middleware/timeout';
 
 const app = express();
 
-// Allow the Electron renderer (dev: localhost:5173, prod: file:// → null origin) + public website
-const allowedOrigins = new Set(['http://localhost:5173', 'http://localhost:5174', 'null']);
+// CLIENT_URL is set on Railway/Vercel to the production frontend URL.
+// localhost origins are always allowed for local development.
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'null',
+  ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
+]);
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -58,6 +64,8 @@ app.use('/topics', topicsRouter);
 app.use('/topics/:topicId/questions', topicQuestionsRouter);
 app.use('/questions', questionsRouter);
 app.use('/cloudinary', cloudinaryRouter);
+
+app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
 app.use(errorHandler);
 
