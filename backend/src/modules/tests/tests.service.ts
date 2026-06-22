@@ -1,5 +1,6 @@
 import { prisma } from '../../lib/prisma';
 import { NotFoundError, ForbiddenError, UnprocessableError } from '../../shared/errors';
+import { getCached, invalidate, CACHE_KEYS, TTL } from '../../shared/cache';
 import { generateAndPersistTest } from './generation/generation.service';
 import { resolveTestStatus } from './tests.utils';
 import type {
@@ -105,19 +106,26 @@ export async function generateTest(
   data: GenerateTestInput,
 ): Promise<TestWithQuestionsDto> {
   const raw = await generateAndPersistTest(teacherId, data);
+  await invalidate(CACHE_KEYS.teacherTests(teacherId));
   return toTestWithQuestionsDto(raw!);
 }
 
 export async function listTests(teacherId: string): Promise<TestDto[]> {
-  const tests = await prisma.test.findMany({
-    where: { teacherId },
-    include: {
-      _count: { select: { testQuestions: true } },
-      batch: { select: { name: true } },
+  return getCached(
+    CACHE_KEYS.teacherTests(teacherId),
+    TTL.TEACHER_TESTS,
+    async () => {
+      const tests = await prisma.test.findMany({
+        where: { teacherId },
+        include: {
+          _count: { select: { testQuestions: true } },
+          batch: { select: { name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      return tests.map(toTestDto);
     },
-    orderBy: { createdAt: 'desc' },
-  });
-  return tests.map(toTestDto);
+  );
 }
 
 export async function getTest(
@@ -154,6 +162,7 @@ export async function updateTest(
       batch: { select: { name: true } },
     },
   });
+  await invalidate(CACHE_KEYS.teacherTests(teacherId));
   return toTestDto(updated);
 }
 
@@ -163,6 +172,10 @@ export async function deleteTest(testId: string, teacherId: string): Promise<voi
     throw new UnprocessableError('Only DRAFT tests can be deleted');
   }
   await prisma.test.delete({ where: { id: testId } });
+  await invalidate(
+    CACHE_KEYS.teacherTests(teacherId),
+    CACHE_KEYS.analytics(testId),
+  );
 }
 
 export async function updateTestQuestion(
@@ -369,37 +382,50 @@ export async function createTestQuestion(
 // ─── Analytics ────────────────────────────────────────────────────────────────
 
 export async function getTestAnalytics(testId: string, teacherId: string) {
+  // Ownership check always runs against DB — never cached.
+  // Prevents any cross-teacher data leakage via shared cache key.
   const test = await prisma.test.findUnique({
     where: { id: testId },
-    include: {
-      attempts: {
-        where: { status: 'SUBMITTED' },
-        include: { student: { select: { username: true } } },
-        orderBy: { score: 'desc' },
-      },
-    },
+    select: { id: true, name: true, teacherId: true },
   });
-
   if (!test) throw new NotFoundError('Test not found');
   if (test.teacherId !== teacherId) throw new ForbiddenError('You do not own this test');
 
-  const students = test.attempts.map((a) => ({
-    username: a.student.username,
-    score: a.score ?? 0,
-  }));
+  // Only the expensive attempt aggregation is cached.
+  const aggregation = await getCached(
+    CACHE_KEYS.analytics(testId),
+    TTL.ANALYTICS,
+    async () => {
+      const attempts = await prisma.attempt.findMany({
+        where: { testId, status: 'SUBMITTED' },
+        include: { student: { select: { username: true } } },
+        orderBy: { score: 'desc' },
+      });
 
-  const scores = students.map((s) => s.score);
-  const highestScore = scores.length > 0 ? Math.max(...scores) : null;
-  const lowestScore = scores.length > 0 ? Math.min(...scores) : null;
-  const averageScore =
-    scores.length > 0
-      ? parseFloat((scores.reduce((sum, v) => sum + v, 0) / scores.length).toFixed(1))
-      : null;
+      const students = attempts.map((a) => ({
+        username: a.student.username,
+        score: a.score ?? 0,
+      }));
+
+      const scores = students.map((s) => s.score);
+
+      return {
+        summary: {
+          highestScore: scores.length > 0 ? Math.max(...scores) : null,
+          lowestScore:  scores.length > 0 ? Math.min(...scores) : null,
+          averageScore:
+            scores.length > 0
+              ? parseFloat((scores.reduce((sum, v) => sum + v, 0) / scores.length).toFixed(1))
+              : null,
+        },
+        students,
+      };
+    },
+  );
 
   return {
-    test: { id: test.id, name: test.name },
-    summary: { highestScore, lowestScore, averageScore },
-    students,
+    test: { id: test.id, name: test.name }, // always fresh from ownership check
+    ...aggregation,
   };
 }
 

@@ -5,6 +5,7 @@ import {
   ConflictError,
   UnprocessableError,
 } from '../../shared/errors';
+import { getCached, invalidate, CACHE_KEYS, TTL } from '../../shared/cache';
 import { scoreResponse, computeScore, isAttempted } from './score.service';
 import { resolveTestStatus } from '../tests/tests.utils';
 import type {
@@ -206,6 +207,13 @@ export async function submitAttempt(
     where: { id: attemptId },
     data: { status: 'SUBMITTED', submittedAt: now, score: totalScore, correctCount, wrongCount, unattemptedCount },
   });
+
+  // Invalidate after DB write succeeds — never before
+  await invalidate(
+    CACHE_KEYS.analytics(attempt.testId),      // rankings + avg change
+    CACHE_KEYS.studentDashboard(studentId),    // recent attempts + stats change
+  );
+
   return toAttemptDto(finalAttempt);
 }
 
@@ -388,44 +396,47 @@ export async function listScheduledTests(studentId: string) {
 }
 
 export async function getStudentDashboard(studentId: string) {
-  const [upcomingTests, recentAttempts, submittedStats] = await Promise.all([
-    listScheduledTests(studentId),
-    prisma.attempt.findMany({
-      where: { studentId, status: { in: ['SUBMITTED', 'EXPIRED'] } },
-      include: { test: { select: { name: true, _count: { select: { testQuestions: true } } } } },
-      orderBy: { submittedAt: 'desc' },
-      take: 5,
-    }),
-    // Aggregate over ALL submitted attempts for accurate stats
-    prisma.attempt.aggregate({
-      where: { studentId, status: 'SUBMITTED' },
-      _count: { id: true },
-      _avg: { score: true },
-    }),
-  ]);
+  return getCached(
+    CACHE_KEYS.studentDashboard(studentId),
+    TTL.STUDENT_DASHBOARD,
+    async () => {
+      const [upcomingTests, recentAttempts, submittedStats] = await Promise.all([
+        listScheduledTests(studentId),
+        prisma.attempt.findMany({
+          where: { studentId, status: { in: ['SUBMITTED', 'EXPIRED'] } },
+          include: { test: { select: { name: true, _count: { select: { testQuestions: true } } } } },
+          orderBy: { submittedAt: 'desc' },
+          take: 5,
+        }),
+        prisma.attempt.aggregate({
+          where: { studentId, status: 'SUBMITTED' },
+          _count: { id: true },
+          _avg: { score: true },
+        }),
+      ]);
 
-  const totalAttempts = submittedStats._count.id;
-  const averageScore =
-    submittedStats._avg.score !== null
-      ? Math.round(submittedStats._avg.score)
-      : null;
+      const totalAttempts = submittedStats._count.id;
+      const averageScore =
+        submittedStats._avg.score !== null ? Math.round(submittedStats._avg.score) : null;
 
-  return {
-    upcomingTests: upcomingTests.filter((t) => !t.attempted),
-    recentAttempts: recentAttempts.map((a) => ({
-      id: a.id,
-      studentId: a.studentId,
-      testId: a.testId,
-      startedAt: a.startedAt.toISOString(),
-      submittedAt: a.submittedAt?.toISOString() ?? null,
-      status: a.status,
-      score: a.score,
-      correctCount: a.correctCount,
-      wrongCount: a.wrongCount,
-      unattemptedCount: a.unattemptedCount,
-      testName: a.test.name,
-      questionCount: a.test._count.testQuestions,
-    })),
-    stats: { totalAttempts, averageScore },
-  };
+      return {
+        upcomingTests: upcomingTests.filter((t) => !t.attempted),
+        recentAttempts: recentAttempts.map((a) => ({
+          id: a.id,
+          studentId: a.studentId,
+          testId: a.testId,
+          startedAt: a.startedAt.toISOString(),
+          submittedAt: a.submittedAt?.toISOString() ?? null,
+          status: a.status,
+          score: a.score,
+          correctCount: a.correctCount,
+          wrongCount: a.wrongCount,
+          unattemptedCount: a.unattemptedCount,
+          testName: a.test.name,
+          questionCount: a.test._count.testQuestions,
+        })),
+        stats: { totalAttempts, averageScore },
+      };
+    },
+  );
 }

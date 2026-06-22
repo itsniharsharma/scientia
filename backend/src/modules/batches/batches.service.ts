@@ -1,5 +1,6 @@
 import { prisma } from '../../lib/prisma';
 import { NotFoundError, ForbiddenError, ConflictError } from '../../shared/errors';
+import { getCached, invalidate, CACHE_KEYS, TTL } from '../../shared/cache';
 import { resolveTestStatus } from '../tests/tests.utils';
 import type { CreateBatchInput, UpdateBatchInput, AddStudentToBatchInput } from '@scientia/validators';
 import type { BatchDto, BatchDetailDto, BatchStudentDto } from '@scientia/types';
@@ -34,12 +35,18 @@ function toBatchDto(
 // ─── Service Functions ────────────────────────────────────────────────────────
 
 export async function listBatches(teacherId: string): Promise<BatchDto[]> {
-  const batches = await prisma.batch.findMany({
-    where: { teacherId },
-    include: { _count: { select: { students: true, tests: true } } },
-    orderBy: { createdAt: 'desc' },
-  });
-  return batches.map(toBatchDto);
+  return getCached(
+    CACHE_KEYS.teacherBatches(teacherId),
+    TTL.TEACHER_BATCHES,
+    async () => {
+      const batches = await prisma.batch.findMany({
+        where: { teacherId },
+        include: { _count: { select: { students: true, tests: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+      return batches.map(toBatchDto);
+    },
+  );
 }
 
 export async function createBatch(
@@ -50,6 +57,7 @@ export async function createBatch(
     data: { name: data.name.trim(), teacherId },
     include: { _count: { select: { students: true, tests: true } } },
   });
+  await invalidate(CACHE_KEYS.teacherBatches(teacherId));
   return { ...toBatchDto(batch), students: [] };
 }
 
@@ -112,6 +120,7 @@ export async function updateBatch(
     data: { name: data.name.trim() },
     include: { _count: { select: { students: true, tests: true } } },
   });
+  await invalidate(CACHE_KEYS.teacherBatches(teacherId));
   return toBatchDto(updated);
 }
 
@@ -140,6 +149,11 @@ export async function addStudentToBatch(
     throw err;
   }
 
+  await invalidate(
+    CACHE_KEYS.teacherBatches(teacherId),   // batch student count changes
+    CACHE_KEYS.studentDashboard(student.id), // student now has new tests visible
+  );
+
   return {
     studentId: student.id,
     username: student.username,
@@ -163,4 +177,8 @@ export async function removeStudentFromBatch(
   await prisma.batchStudent.delete({
     where: { batchId_studentId: { batchId, studentId } },
   });
+  await invalidate(
+    CACHE_KEYS.teacherBatches(teacherId),    // batch student count changes
+    CACHE_KEYS.studentDashboard(studentId),  // student loses access to batch tests
+  );
 }
