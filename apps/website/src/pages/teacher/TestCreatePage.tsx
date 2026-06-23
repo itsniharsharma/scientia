@@ -145,10 +145,8 @@ export function TestCreatePage() {
       }
     },
     onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Failed to generate test. Please try again.';
-      setError(msg);
+      const raw = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
+      setError(typeof raw === 'string' ? raw : 'Failed to generate test. Please try again.');
     },
   });
 

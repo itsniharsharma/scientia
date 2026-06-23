@@ -29,10 +29,8 @@ export function InstructionsPage() {
       navigate(ROUTES.STUDENT_EXAM(attempt.id));
     },
     onError: (err: unknown) => {
-      const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Failed to start test. Please try again.';
-      setError(msg);
+      const raw = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
+      setError(typeof raw === 'string' ? raw : 'Failed to start test. Please try again.');
       setStarting(false);
     },
   });

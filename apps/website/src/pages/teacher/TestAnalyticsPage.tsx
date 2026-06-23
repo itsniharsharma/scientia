@@ -53,9 +53,8 @@ export function TestAnalyticsPage() {
   }
 
   if (error) {
-    const msg =
-      (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-      'Could not load analytics.';
+    const raw = (error as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
+    const msg = typeof raw === 'string' ? raw : 'Could not load analytics.';
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
         {msg}

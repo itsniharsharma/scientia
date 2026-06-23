@@ -447,10 +447,8 @@ export function ExamRunnerPage() {
       clearLocalState(attemptId);
       navigate(ROUTES.STUDENT_RESULT(attemptId), { replace: true });
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Submission failed. Please try again.';
-      alert(msg);
+      const raw = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
+      alert(typeof raw === 'string' ? raw : 'Submission failed. Please try again.');
       setSubmitting(false);
       setShowSubmit(false);
     }

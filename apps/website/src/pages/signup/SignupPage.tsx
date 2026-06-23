@@ -187,10 +187,8 @@ function StudentSignupForm({ onBack }: { onBack: () => void }) {
       setAuth(result.user);
       navigate(ROUTES.STUDENT_DASHBOARD);
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data
-          ?.error ?? 'Something went wrong. Please try again.';
-      setServerError(msg);
+      const raw = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
+      setServerError(typeof raw === 'string' ? raw : 'Something went wrong. Please try again.');
     }
   };
 

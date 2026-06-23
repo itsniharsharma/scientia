@@ -33,10 +33,8 @@ export function TeacherLoginPage() {
       setAuth(result.user);
       navigate(ROUTES.TEACHER_TESTS);
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Invalid username or password.';
-      setServerError(msg);
+      const raw = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
+      setServerError(typeof raw === 'string' ? raw : 'Invalid username or password.');
     }
   };
 
