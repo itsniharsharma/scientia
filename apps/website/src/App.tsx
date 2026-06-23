@@ -5,16 +5,21 @@ import { queryClient } from './lib/query-client';
 import { AppRouter } from './app/router';
 import { useAuthStore } from './store/auth.store';
 import { getCurrentUser } from './lib/auth.api';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 function AuthHydrator({ children }: { children: ReactNode }) {
   const { setAuth, clearAuth } = useAuthStore();
 
   useEffect(() => {
+    // Only validate an existing persisted session. Skip on fresh loads where
+    // there is nothing to validate. This prevents a pre-login /auth/me request
+    // (which has no cookie) from resolving AFTER a successful login and calling
+    // clearAuth(), which would kick the user back to the login page.
+    // Stale-session detection for persisted sessions still works because the
+    // 401 interceptor in axios.ts calls clearAuth() on any failed API call.
+    if (!useAuthStore.getState().isAuthenticated) return;
+
     let cancelled = false;
-    // Always probe /auth/me on mount — the httpOnly cookie carries the session.
-    // If valid: refreshes user object from DB. If not: clears stale Zustand state.
-    // The cancelled guard prevents a stale /auth/me 401 from overwriting a
-    // setAuth() that completed after this effect started (race on slow networks).
     getCurrentUser()
       .then((user) => { if (!cancelled) setAuth(user); })
       .catch(() => { if (!cancelled) clearAuth(); });
@@ -26,12 +31,14 @@ function AuthHydrator({ children }: { children: ReactNode }) {
 
 export function App() {
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <AuthHydrator>
-          <AppRouter />
-        </AuthHydrator>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <AuthHydrator>
+            <AppRouter />
+          </AuthHydrator>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
