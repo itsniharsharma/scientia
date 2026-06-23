@@ -1,7 +1,5 @@
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string | undefined;
 const API_KEY = import.meta.env.VITE_CLOUDINARY_API_KEY as string | undefined;
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-
 type CloudinaryResponse = { secure_url: string };
 type CloudinaryError = { error?: { message: string } };
 
@@ -14,7 +12,7 @@ export async function uploadToCloudinary(blob: Blob, originalFilename: string): 
 
   const timestamp = Math.round(Date.now() / 1000).toString();
 
-  const signRes = await fetch(`${API_URL}/cloudinary/sign`, {
+  const signRes = await fetch('/api/cloudinary/sign', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
