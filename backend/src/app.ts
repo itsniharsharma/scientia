@@ -27,6 +27,10 @@ import { requestTimeout } from './shared/middleware/timeout';
 
 const app = express();
 
+// Trust Render's single load-balancer hop so req.ip resolves to the real
+// client IP and express-rate-limit does not throw ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set('trust proxy', 1);
+
 // CLIENT_URL is set on Railway/Vercel to the production frontend URL.
 // localhost origins are always allowed for local development.
 const allowedOrigins = new Set([
