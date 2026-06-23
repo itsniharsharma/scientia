@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as AuthService from './auth.service';
+import { logger } from '../../shared/logger';
 
 const COOKIE_NAME = 'auth_token';
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
@@ -25,6 +26,12 @@ export async function registerStudent(
   try {
     const { token, user } = await AuthService.registerStudent(req.body);
     setAuthCookie(res, token);
+    logger.info('auth.register', {
+      role: 'STUDENT',
+      cookieIssued: true,
+      origin: req.headers.origin ?? 'none',
+      ua: (req.headers['user-agent'] ?? '').slice(0, 80),
+    });
     res.status(201).json({ user });
   } catch (err) {
     next(err);
@@ -39,6 +46,12 @@ export async function loginStudent(
   try {
     const { token, user } = await AuthService.loginStudent(req.body);
     setAuthCookie(res, token);
+    logger.info('auth.login', {
+      role: 'STUDENT',
+      cookieIssued: true,
+      origin: req.headers.origin ?? 'none',
+      ua: (req.headers['user-agent'] ?? '').slice(0, 80),
+    });
     res.json({ user });
   } catch (err) {
     next(err);
@@ -53,6 +66,12 @@ export async function loginTeacher(
   try {
     const { token, user } = await AuthService.loginTeacher(req.body);
     setAuthCookie(res, token);
+    logger.info('auth.login', {
+      role: 'TEACHER',
+      cookieIssued: true,
+      origin: req.headers.origin ?? 'none',
+      ua: (req.headers['user-agent'] ?? '').slice(0, 80),
+    });
     res.json({ user });
   } catch (err) {
     next(err);
