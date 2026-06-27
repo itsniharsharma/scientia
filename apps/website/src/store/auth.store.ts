@@ -25,6 +25,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'scientia-auth',
+      version: 1,
       partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
     },
   ),

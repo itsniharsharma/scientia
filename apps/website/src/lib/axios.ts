@@ -3,9 +3,8 @@ import { useAuthStore } from '../store/auth.store';
 
 export const api = axios.create({
   baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 30_000,
+  headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
 });
 

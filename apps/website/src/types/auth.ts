@@ -19,8 +19,3 @@ export interface TeacherDto {
 }
 
 export type AuthUser = StudentDto | TeacherDto;
-
-export interface AuthResponse<T extends AuthUser = AuthUser> {
-  token: string;
-  user: T;
-}
