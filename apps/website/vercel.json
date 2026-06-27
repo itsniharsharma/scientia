@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://scientia-bx5h.onrender.com/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
