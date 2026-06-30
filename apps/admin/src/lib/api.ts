@@ -30,6 +30,7 @@ export class ApiError extends Error {
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options?.headers,
@@ -52,6 +53,18 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   return body as T;
 }
+
+export const authApi = {
+  login: (username: string, password: string) =>
+    request<{ id: string; username: string; role: string }>('/auth/teacher/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    }),
+
+  logout: () => request<void>('/auth/logout', { method: 'POST' }),
+
+  me: () => request<{ id: string; username: string; role: string }>('/auth/me'),
+};
 
 export const subjectsApi = {
   list: (): Promise<Subject[]> => request<Subject[]>('/subjects'),

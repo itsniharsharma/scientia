@@ -1,4 +1,8 @@
+import { useEffect } from 'react';
 import { useNavigationStore } from './store/navigation.store';
+import { useAuthStore } from './store/auth.store';
+import { authApi } from './lib/api';
+import { LoginPage } from './modules/auth/LoginPage';
 import { SubjectsPage } from './modules/subjects/SubjectsPage';
 import { ChaptersPage } from './modules/chapters/ChaptersPage';
 import { TopicsPage } from './modules/topics/TopicsPage';
@@ -6,6 +10,12 @@ import { QuestionsPage } from './modules/questions/QuestionsPage';
 
 function Sidebar() {
   const { activeView, setActiveView } = useNavigationStore();
+  const { username, clearAuth } = useAuthStore();
+
+  async function handleLogout() {
+    await authApi.logout().catch(() => {});
+    clearAuth();
+  }
 
   return (
     <aside className="flex h-full w-52 flex-shrink-0 flex-col bg-gray-900">
@@ -14,6 +24,14 @@ function Sidebar() {
           Scientia
         </span>
       </div>
+      {username && (
+        <div className="flex items-center justify-between px-4 pb-2 pt-1">
+          <span className="truncate text-xs text-gray-400">{username}</span>
+          <button onClick={handleLogout} className="text-xs text-gray-500 hover:text-red-400">
+            Out
+          </button>
+        </div>
+      )}
       <nav className="flex flex-col gap-1 px-3 pt-2">
         <button
           onClick={() => setActiveView('library')}
@@ -132,6 +150,17 @@ function ContentArea() {
 }
 
 export function App() {
+  const { isAuthenticated, setAuthenticated } = useAuthStore();
+
+  // On mount, check if cookie session still valid
+  useEffect(() => {
+    authApi.me()
+      .then((user) => setAuthenticated(user.username))
+      .catch(() => {});
+  }, [setAuthenticated]);
+
+  if (!isAuthenticated) return <LoginPage />;
+
   return (
     <div className="flex h-full bg-gray-50">
       <Sidebar />
