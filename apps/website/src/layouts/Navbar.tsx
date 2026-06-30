@@ -276,12 +276,14 @@ export function Navbar() {
       <Container>
         <nav className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link
-            to={ROUTES.HOME}
-            className="flex items-center gap-2.5 text-xl font-bold text-brand-700"
-          >
+          <Link to={ROUTES.HOME} className="flex items-center gap-2.5">
             <HexIcon />
-            Scientia
+            <span className="flex flex-col leading-tight">
+              <span className="text-xl font-bold text-brand-700">Scientia</span>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                Power of Knowledge
+              </span>
+            </span>
           </Link>
 
           {/* Desktop center links */}
