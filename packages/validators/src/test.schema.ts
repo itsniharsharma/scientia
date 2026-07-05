@@ -23,12 +23,14 @@ export const generateTestSchema = z.object({
     .min(1, 'Select at least one topic'),
 
   questionCount: z
+    .coerce
     .number({ required_error: 'Number of questions is required' })
     .int()
     .min(1, 'Must select at least 1 question')
     .max(200, 'Cannot exceed 200 questions'),
 
   durationMinutes: z
+    .coerce
     .number({ required_error: 'Duration is required' })
     .int()
     .min(5, 'Minimum duration is 5 minutes')
@@ -38,7 +40,7 @@ export const generateTestSchema = z.object({
     .string({ required_error: 'Schedule date is required' })
     .datetime({ message: 'Invalid date format' }),
 
-  batchId: z.string().uuid('Invalid batch ID').optional(),
+  batchId: z.string().cuid('Invalid batch ID').optional(),
 });
 
 export type GenerateTestInput = z.infer<typeof generateTestSchema>;

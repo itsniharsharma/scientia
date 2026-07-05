@@ -303,8 +303,9 @@ export function ExamRunnerPage() {
   const autosaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pendingSaveRef = useRef<Set<string>>(new Set());
-  // Stable ref so the autosave interval always calls the latest flush without restarting
+  // Stable refs so intervals always call the latest callbacks without restarting
   const flushPendingSaveRef = useRef<() => void>(() => {});
+  const handleAutoSubmitRef = useRef<() => void>(() => {});
 
   // ── Load attempt on mount ───────────────────────────────────────────────────
   useEffect(() => {
@@ -331,7 +332,7 @@ export function ExamRunnerPage() {
         setCurrentIndex(Math.min(localState.currentIndex, data.questions.length - 1));
         setVisitedIds(new Set(localState.visitedIds));
         setMarkedIds(new Set(localState.markedIds));
-        setTimeRemaining(calcRemaining(data.startedAt, data.test.durationMinutes));
+        setTimeRemaining(calcRemaining(data.test.scheduledAt, data.test.durationMinutes));
         setLoading(false);
       })
       .catch(() => {
@@ -348,7 +349,7 @@ export function ExamRunnerPage() {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(countdownRef.current!);
-          handleAutoSubmit();
+          handleAutoSubmitRef.current();
           return 0;
         }
         return prev - 1;
@@ -405,7 +406,7 @@ export function ExamRunnerPage() {
     });
   }, [attemptId, responses]);
 
-  // Keep the ref in sync so the stable interval always calls the latest version
+  // Keep ref in sync so the stable autosave interval always calls the latest flush
   flushPendingSaveRef.current = flushPendingSave;
 
   // ─── Answer change ───────────────────────────────────────────────────────────
@@ -454,12 +455,17 @@ export function ExamRunnerPage() {
   const handleAutoSubmit = useCallback(async () => {
     if (!attemptId) return;
     try {
-      await flushPendingSave();
+      // Best-effort flush — fire-and-forget so a rejected late-save never blocks submit
+      flushPendingSave();
       await submitAttempt(attemptId);
       clearLocalState(attemptId);
       navigate(ROUTES.STUDENT_RESULT(attemptId), { replace: true });
-    } catch {}
+    } catch {
+      // Submit failed — getAttempt will auto-expire on next load
+    }
   }, [attemptId, navigate, flushPendingSave]);
+  // Keep ref in sync so the countdown interval always calls the latest auto-submit
+  handleAutoSubmitRef.current = handleAutoSubmit;
 
   const handleConfirmSubmit = async () => {
     if (!attemptId) return;

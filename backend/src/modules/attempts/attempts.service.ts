@@ -59,6 +59,42 @@ async function requireAttemptOwner(attemptId: string, studentId: string) {
   return attempt;
 }
 
+// Scores all responses and marks the attempt EXPIRED (time ran out, distinct from SUBMITTED).
+// Called server-side when a student reconnects after the test window has closed.
+async function expireAttempt(attemptId: string): Promise<AttemptRecord> {
+  const responses = await prisma.response.findMany({
+    where: { attemptId },
+    include: { testQuestion: true },
+  });
+
+  let totalScore = 0, correctCount = 0, wrongCount = 0, unattemptedCount = 0;
+  const scored = responses.map((r) => {
+    const { isCorrect, points } = scoreResponse(
+      r.testQuestion.questionType as 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER',
+      r.selectedAnswerJson as SelectedAnswer | null,
+      r.testQuestion.correctAnswerJson as unknown as CorrectAnswerSnapshot,
+    );
+    totalScore += points;
+    if (isCorrect === null) unattemptedCount++;
+    else if (isCorrect) correctCount++;
+    else wrongCount++;
+    return { id: r.id, isCorrect };
+  });
+
+  const now = new Date();
+  return prisma.$transaction(async (tx) => {
+    await Promise.all(
+      scored.map(({ id, isCorrect }) =>
+        tx.response.update({ where: { id }, data: { isCorrect: isCorrect ?? false } }),
+      ),
+    );
+    return tx.attempt.update({
+      where: { id: attemptId },
+      data: { status: 'EXPIRED', submittedAt: now, score: totalScore, correctCount, wrongCount, unattemptedCount },
+    });
+  });
+}
+
 // ─── Service Functions ────────────────────────────────────────────────────────
 
 export async function startAttempt(
@@ -77,6 +113,10 @@ export async function startAttempt(
   }
   if (resolvedStatus !== 'SCHEDULED') {
     throw new UnprocessableError('This test is not open for attempts');
+  }
+  // Block start before the scheduled time — resolveTestStatus doesn't distinguish pre-start
+  if (test.scheduledAt && Date.now() < test.scheduledAt.getTime()) {
+    throw new UnprocessableError('This test has not started yet');
   }
   if (test.testQuestions.length === 0) {
     throw new UnprocessableError('This test has no questions');
@@ -123,7 +163,22 @@ export async function getAttempt(
     prisma.response.findMany({ where: { attemptId } }),
   ]);
 
-  return buildAttemptWithDetails(attempt, test!, savedResponses);
+  // Server-side enforcement: if the test window has closed and the attempt is still open,
+  // score and expire it immediately so the client sees EXPIRED and redirects to results.
+  if (attempt.status === 'IN_PROGRESS' && test?.scheduledAt) {
+    const endMs = test.scheduledAt.getTime() + test.durationMinutes * 60 * 1000;
+    if (Date.now() >= endMs) {
+      const expired = await expireAttempt(attemptId);
+      await invalidate(
+        CACHE_KEYS.analytics(attempt.testId),
+        CACHE_KEYS.studentDashboard(studentId),
+      );
+      return buildAttemptWithDetails(expired, test, savedResponses);
+    }
+  }
+
+  if (!test) throw new NotFoundError('Test not found');
+  return buildAttemptWithDetails(attempt, test, savedResponses);
 }
 
 export async function saveResponses(
@@ -134,6 +189,18 @@ export async function saveResponses(
   const attempt = await requireAttemptOwner(attemptId, studentId);
   if (attempt.status !== 'IN_PROGRESS') {
     throw new UnprocessableError('This attempt is no longer active');
+  }
+
+  // Reject answer saves after the test window has closed
+  const testMeta = await prisma.test.findUnique({
+    where: { id: attempt.testId },
+    select: { scheduledAt: true, durationMinutes: true },
+  });
+  if (testMeta?.scheduledAt) {
+    const endMs = testMeta.scheduledAt.getTime() + testMeta.durationMinutes * 60 * 1000;
+    if (Date.now() >= endMs) {
+      throw new UnprocessableError('Test time has ended');
+    }
   }
 
   const now = new Date();
@@ -193,18 +260,16 @@ export async function submitAttempt(
   });
 
   const now = new Date();
-  await prisma.$transaction(
-    scoredResponses.map(({ id, isCorrect }) =>
-      prisma.response.update({
-        where: { id },
-        data: { isCorrect: isCorrect ?? false },
-      }),
-    ),
-  );
-
-  const finalAttempt = await prisma.attempt.update({
-    where: { id: attemptId },
-    data: { status: 'SUBMITTED', submittedAt: now, score: totalScore, correctCount, wrongCount, unattemptedCount },
+  const finalAttempt = await prisma.$transaction(async (tx) => {
+    await Promise.all(
+      scoredResponses.map(({ id, isCorrect }) =>
+        tx.response.update({ where: { id }, data: { isCorrect: isCorrect ?? false } }),
+      ),
+    );
+    return tx.attempt.update({
+      where: { id: attemptId },
+      data: { status: 'SUBMITTED', submittedAt: now, score: totalScore, correctCount, wrongCount, unattemptedCount },
+    });
   });
 
   // Invalidate after DB write succeeds — never before

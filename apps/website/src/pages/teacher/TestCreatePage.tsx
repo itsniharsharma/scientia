@@ -145,8 +145,13 @@ export function TestCreatePage() {
       }
     },
     onError: (err: unknown) => {
-      const raw = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
-      setError(typeof raw === 'string' ? raw : 'Failed to generate test. Please try again.');
+      const data = (err as { response?: { data?: { error?: unknown; details?: { field: string; message: string }[] } } })?.response?.data;
+      if (data?.details && data.details.length > 0) {
+        const first = data.details[0];
+        setError(`${first.field ? first.field + ': ' : ''}${first.message}`);
+      } else {
+        setError(typeof data?.error === 'string' ? data.error : 'Failed to generate test. Please try again.');
+      }
     },
   });
 
