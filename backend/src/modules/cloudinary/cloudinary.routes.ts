@@ -8,8 +8,12 @@ const router = Router();
 router.post('/sign', authenticate, requireRole('TEACHER'), (req, res) => {
   const { timestamp } = req.body as { timestamp?: unknown };
 
-  if (typeof timestamp !== 'string' || !/^\d+$/.test(timestamp)) {
-    res.status(400).json({ error: 'timestamp must be a numeric string' });
+  if (
+    typeof timestamp !== 'string' ||
+    !/^\d+$/.test(timestamp) ||
+    timestamp.length > 20
+  ) {
+    res.status(400).json({ error: 'Invalid timestamp' });
     return;
   }
 

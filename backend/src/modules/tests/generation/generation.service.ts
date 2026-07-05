@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../../lib/prisma';
 import { UnprocessableError } from '../../../shared/errors';
 import { buildGenerationSeed, selectQuestionIds } from './fairness.algorithm';
@@ -82,8 +83,8 @@ export async function generateAndPersistTest(
         questionImageUrl: q.questionImageUrl,
         latexContent: q.latexContent,
         questionType: q.type,
-        optionsJson: JSON.parse(JSON.stringify(buildOptionsSnapshot(q.options))),
-        correctAnswerJson: JSON.parse(JSON.stringify(buildCorrectAnswerSnapshot(q))),
+        optionsJson: buildOptionsSnapshot(q.options) as unknown as Prisma.InputJsonValue,
+        correctAnswerJson: buildCorrectAnswerSnapshot(q) as unknown as Prisma.InputJsonValue,
         position: index + 1,
       };
     });

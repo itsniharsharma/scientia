@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import { ConflictError, NotFoundError } from '../../shared/errors';
+import { handleUniqueConstraint } from '../../shared/prisma-errors';
 import { getSubjectById } from '../subjects/subjects.service';
 import type { CreateChapterInput, UpdateChapterInput } from '@scientia/validators';
 import type { Chapter } from '@scientia/types';
@@ -21,17 +22,6 @@ function toDto(record: {
   };
 }
 
-function handleUniqueConstraint(name: string, err: unknown): never {
-  if (
-    err instanceof Prisma.PrismaClientKnownRequestError &&
-    err.code === 'P2002'
-  ) {
-    throw new ConflictError(
-      `A chapter named "${name}" already exists in this subject`,
-    );
-  }
-  throw err;
-}
 
 export async function getAllChapters(subjectId: string): Promise<Chapter[]> {
   await getSubjectById(subjectId);
@@ -61,7 +51,7 @@ export async function createChapter(
     });
     return toDto(record);
   } catch (err) {
-    return handleUniqueConstraint(data.name, err);
+    return handleUniqueConstraint(`A chapter named "${data.name}" already exists in this subject`, err);
   }
 }
 
@@ -77,7 +67,7 @@ export async function updateChapter(
     });
     return toDto(record);
   } catch (err) {
-    return handleUniqueConstraint(data.name, err);
+    return handleUniqueConstraint(`A chapter named "${data.name}" already exists in this subject`, err);
   }
 }
 

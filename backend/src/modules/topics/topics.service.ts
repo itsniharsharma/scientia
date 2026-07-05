@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import { ConflictError, NotFoundError } from '../../shared/errors';
+import { handleUniqueConstraint } from '../../shared/prisma-errors';
 import { getChapterById } from '../chapters/chapters.service';
 import type { CreateTopicInput, UpdateTopicInput } from '@scientia/validators';
 import type { Topic } from '@scientia/types';
@@ -19,18 +20,6 @@ function toDto(record: {
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
   };
-}
-
-function handleUniqueConstraint(name: string, err: unknown): never {
-  if (
-    err instanceof Prisma.PrismaClientKnownRequestError &&
-    err.code === 'P2002'
-  ) {
-    throw new ConflictError(
-      `A topic named "${name}" already exists in this chapter`,
-    );
-  }
-  throw err;
 }
 
 export async function getAllTopics(chapterId: string): Promise<Topic[]> {
@@ -61,7 +50,7 @@ export async function createTopic(
     });
     return toDto(record);
   } catch (err) {
-    return handleUniqueConstraint(data.name, err);
+    return handleUniqueConstraint(`A topic named "${data.name}" already exists in this chapter`, err);
   }
 }
 
@@ -77,7 +66,7 @@ export async function updateTopic(
     });
     return toDto(record);
   } catch (err) {
-    return handleUniqueConstraint(data.name, err);
+    return handleUniqueConstraint(`A topic named "${data.name}" already exists in this chapter`, err);
   }
 }
 
@@ -90,9 +79,7 @@ export async function deleteTopic(id: string): Promise<void> {
       err instanceof Prisma.PrismaClientKnownRequestError &&
       err.code === 'P2003'
     ) {
-      throw new ConflictError(
-        'Cannot delete topic: it has existing questions',
-      );
+      throw new ConflictError('Cannot delete topic: it has existing questions');
     }
     throw err;
   }

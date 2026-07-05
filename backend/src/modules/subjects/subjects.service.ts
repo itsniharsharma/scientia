@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import { ConflictError, NotFoundError } from '../../shared/errors';
+import { handleUniqueConstraint } from '../../shared/prisma-errors';
 import type { CreateSubjectInput, UpdateSubjectInput } from '@scientia/validators';
 import type { Subject } from '@scientia/types';
 
@@ -18,15 +19,6 @@ function toDto(record: {
   };
 }
 
-function handleUniqueConstraint(name: string, err: unknown): never {
-  if (
-    err instanceof Prisma.PrismaClientKnownRequestError &&
-    err.code === 'P2002'
-  ) {
-    throw new ConflictError(`A subject named "${name}" already exists`);
-  }
-  throw err;
-}
 
 export async function getAllSubjects(): Promise<Subject[]> {
   const records = await prisma.subject.findMany({
@@ -48,7 +40,7 @@ export async function createSubject(data: CreateSubjectInput): Promise<Subject> 
     const record = await prisma.subject.create({ data: { name: data.name } });
     return toDto(record);
   } catch (err) {
-    return handleUniqueConstraint(data.name, err);
+    return handleUniqueConstraint(`A subject named "${data.name}" already exists`, err);
   }
 }
 
@@ -64,7 +56,7 @@ export async function updateSubject(
     });
     return toDto(record);
   } catch (err) {
-    return handleUniqueConstraint(data.name, err);
+    return handleUniqueConstraint(`A subject named "${data.name}" already exists`, err);
   }
 }
 

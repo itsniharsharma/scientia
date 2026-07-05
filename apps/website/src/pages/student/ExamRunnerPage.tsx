@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAttempt, saveResponses, submitAttempt } from '../../lib/attempts.api';
 import { ROUTES } from '../../routes';
@@ -75,6 +75,29 @@ function paletteClass(state: QuestionState, active: boolean): string {
       return `${base} bg-slate-100 text-slate-500 border-slate-200`;
   }
 }
+
+const PaletteButton = memo(
+  ({
+    state,
+    active,
+    index,
+    onGo,
+  }: {
+    state: QuestionState;
+    active: boolean;
+    index: number;
+    onGo: (i: number) => void;
+  }) => (
+    <button
+      onClick={() => onGo(index)}
+      className={paletteClass(state, active)}
+      title={`Question ${index + 1}`}
+    >
+      {index + 1}
+    </button>
+  ),
+  (prev, next) => prev.state === next.state && prev.active === next.active,
+);
 
 // ─── Question renderer ────────────────────────────────────────────────────────
 
@@ -603,14 +626,13 @@ export function ExamRunnerPage() {
 
           <div className="flex flex-wrap gap-1.5">
             {questions.map((q, i) => (
-              <button
+              <PaletteButton
                 key={q.id}
-                onClick={() => goTo(i)}
-                className={paletteClass(qState(q), i === currentIndex)}
-                title={`Question ${i + 1}`}
-              >
-                {i + 1}
-              </button>
+                state={qState(q)}
+                active={i === currentIndex}
+                index={i}
+                onGo={goTo}
+              />
             ))}
           </div>
 

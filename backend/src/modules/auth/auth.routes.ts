@@ -60,7 +60,7 @@ router.post(
 );
 
 // POST /auth/logout
-router.post('/logout', AuthController.logout);
+router.post('/logout', authLimiter, AuthController.logout);
 
 // GET /auth/me  (requires a valid JWT)
 router.get('/me', authenticate, AuthController.me);

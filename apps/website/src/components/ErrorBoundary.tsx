@@ -16,7 +16,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[ErrorBoundary] Render error:', error, info.componentStack);
+    if (import.meta.env.DEV) {
+      console.error('[ErrorBoundary] Render error:', error, info.componentStack);
+    }
   }
 
   render() {
@@ -68,6 +70,7 @@ export class ErrorBoundary extends Component<Props, State> {
             >
               {error.message}
             </p>
+            {import.meta.env.DEV && (
             <pre
               style={{
                 background: '#f1f5f9',
@@ -84,6 +87,7 @@ export class ErrorBoundary extends Component<Props, State> {
             >
               {error.stack}
             </pre>
+          )}
             <button
               onClick={() => window.location.reload()}
               style={{

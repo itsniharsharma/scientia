@@ -6,7 +6,7 @@ import {
   UnprocessableError,
 } from '../../shared/errors';
 import { getCached, invalidate, CACHE_KEYS, TTL } from '../../shared/cache';
-import { scoreResponse, computeScore, isAttempted } from './score.service';
+import { scoreResponse, isAttempted } from './score.service';
 import { resolveTestStatus } from '../tests/tests.utils';
 import type {
   AttemptDto,
@@ -145,7 +145,7 @@ export async function saveResponses(
         data: {
           selectedAnswerJson:
             r.selectedAnswerJson !== null
-              ? JSON.parse(JSON.stringify(r.selectedAnswerJson))
+              ? (r.selectedAnswerJson as Prisma.InputJsonValue)
               : Prisma.JsonNull,
           answeredAt: now,
         },
@@ -177,30 +177,29 @@ export async function submitAttempt(
     },
   });
 
-  // Compute scores for each response
-  const scoringInputs = responses.map((r) => ({
-    questionType: r.testQuestion.questionType as 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER',
-    selected: r.selectedAnswerJson as SelectedAnswer | null,
-    correct: r.testQuestion.correctAnswerJson as unknown as CorrectAnswerSnapshot,
-  }));
+  // Single-pass scoring: score each response once, derive both per-response isCorrect and aggregate totals
+  let totalScore = 0, correctCount = 0, wrongCount = 0, unattemptedCount = 0;
+  const scoredResponses = responses.map((r) => {
+    const { isCorrect, points } = scoreResponse(
+      r.testQuestion.questionType as 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER',
+      r.selectedAnswerJson as SelectedAnswer | null,
+      r.testQuestion.correctAnswerJson as unknown as CorrectAnswerSnapshot,
+    );
+    totalScore += points;
+    if (isCorrect === null) unattemptedCount++;
+    else if (isCorrect) correctCount++;
+    else wrongCount++;
+    return { id: r.id, isCorrect };
+  });
 
-  const { totalScore, correctCount, wrongCount, unattemptedCount } =
-    computeScore(scoringInputs);
-
-  // Score each individual response and persist
   const now = new Date();
   await prisma.$transaction(
-    responses.map((r) => {
-      const { isCorrect } = scoreResponse(
-        r.testQuestion.questionType as 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'INTEGER',
-        r.selectedAnswerJson as SelectedAnswer | null,
-        r.testQuestion.correctAnswerJson as unknown as CorrectAnswerSnapshot,
-      );
-      return prisma.response.update({
-        where: { id: r.id },
+    scoredResponses.map(({ id, isCorrect }) =>
+      prisma.response.update({
+        where: { id },
         data: { isCorrect: isCorrect ?? false },
-      });
-    }),
+      }),
+    ),
   );
 
   const finalAttempt = await prisma.attempt.update({
