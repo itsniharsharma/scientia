@@ -21,6 +21,8 @@ import {
   questionsRouter,
 } from './modules/questions/questions.routes';
 import cloudinaryRouter from './modules/cloudinary/cloudinary.routes';
+import telegramRouter from './teleService/telegram/telegram.webhook';
+import healthRouter from './modules/health/health.routes';
 import { errorHandler } from './shared/middleware/error-handler';
 import { requestId } from './shared/middleware/request-id';
 import { requestTimeout } from './shared/middleware/timeout';
@@ -68,8 +70,8 @@ app.use('/topics', topicsRouter);
 app.use('/topics/:topicId/questions', topicQuestionsRouter);
 app.use('/questions', questionsRouter);
 app.use('/cloudinary', cloudinaryRouter);
-
-app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+app.use('/telegram/webhook', telegramRouter);
+app.use(healthRouter);
 
 app.use(errorHandler);
 

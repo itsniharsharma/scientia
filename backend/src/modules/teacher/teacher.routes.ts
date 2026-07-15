@@ -8,5 +8,6 @@ const router = Router();
 router.use(authenticate, requireRole('TEACHER'));
 
 router.get('/profile', TeacherController.getProfile);
+router.post('/telegram-link-token', TeacherController.generateTelegramLinkToken);
 
 export default router;

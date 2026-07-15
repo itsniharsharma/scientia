@@ -41,7 +41,8 @@ model Topic {
   updatedAt DateTime @updatedAt
 
   chapter   Chapter    @relation(fields: [chapterId], references: [id])
-  questions Question[]
+  questions  Question[]
+  uploadJobs UploadJob[]
 
   @@unique([chapterId, name])
   @@map("topics")
@@ -51,6 +52,26 @@ enum QuestionType {
   SINGLE_CHOICE
   MULTI_CHOICE
   INTEGER
+}
+
+enum UploadSource {
+  TELEGRAM
+  WEB_ADMIN
+  ANDROID
+  IOS
+  BULK_IMPORT
+}
+
+enum UploadJobStatus {
+  RECEIVED
+  VALIDATING
+  DOWNLOADING
+  COMPRESSING
+  UPLOADING
+  CREATING_QUESTION
+  COMPLETED
+  FAILED
+  ORPHANED
 }
 
 enum QuestionStatus {
@@ -75,6 +96,7 @@ model Question {
   topic         Topic          @relation(fields: [topicId], references: [id])
   options       Option[]
   testQuestions TestQuestion[]
+  uploadJob     UploadJob?
 
   @@index([topicId, status])
   @@index([status, appearanceCount])
@@ -104,14 +126,16 @@ enum UserRole {
 }
 
 model Teacher {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(uuid())
+  username       String   @unique
+  password       String
+  telegramUserId String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  tests   Test[]
-  batches Batch[]
+  tests      Test[]
+  batches    Batch[]
+  uploadJobs UploadJob[]
 
   @@map("teachers")
 }
@@ -266,4 +290,30 @@ model Response {
   @@index([attemptId])
   @@index([testQuestionId])
   @@map("responses")
+}
+
+// ─── Upload Jobs ──────────────────────────────────────────────────────────────
+
+model UploadJob {
+  id                 String          @id @default(uuid())
+  teacherId          String
+  topicId            String
+  uploadSource       UploadSource
+  status             UploadJobStatus @default(RECEIVED)
+  failedStep         String?
+  errorMessage       String?
+  cloudinaryPublicId String?
+  questionId         String?         @unique
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  resolvedAt         DateTime?
+
+  teacher  Teacher   @relation(fields: [teacherId], references: [id])
+  topic    Topic     @relation(fields: [topicId], references: [id])
+  question Question? @relation(fields: [questionId], references: [id])
+
+  @@index([status])
+  @@index([teacherId])
+  @@index([teacherId, status, createdAt])
+  @@map("upload_jobs")
 }
