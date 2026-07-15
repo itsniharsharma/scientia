@@ -8,6 +8,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  LabelList,
 } from 'recharts';
 import { getTestAnalytics } from '../../lib/tests.api';
 import { ROUTES } from '../../routes';
@@ -119,7 +120,7 @@ export function TestAnalyticsPage() {
           <ResponsiveContainer width="100%" height={320}>
             <BarChart
               data={students}
-              margin={{ top: 4, right: 16, left: 0, bottom: 40 }}
+              margin={{ top: 24, right: 16, left: 0, bottom: 40 }}
               barCategoryGap="30%"
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
@@ -149,7 +150,9 @@ export function TestAnalyticsPage() {
                 }}
                 formatter={(value) => [value, 'Score']}
               />
-              <Bar dataKey="score" fill="#1d4ed8" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="score" fill="#1d4ed8" radius={[4, 4, 0, 0]}>
+                <LabelList dataKey="score" position="top" style={{ fontSize: 12, fill: '#1e293b', fontWeight: 600 }} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         )}
