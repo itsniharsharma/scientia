@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getTest, updateTest } from '../../lib/tests.api';
 import { ROUTES } from '../../routes';
 import type { TestStatus } from '../../types/test';
+import { QuestionContent } from '../../components/QuestionContent';
+import { OptionContent } from '../../components/OptionContent';
 
 const STATUS_BADGE: Record<TestStatus, string> = {
   DRAFT: 'bg-slate-100 text-slate-600',
@@ -137,9 +139,13 @@ export function TestDetailPage() {
                       {q.questionType.replace('_', ' ')}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-800 leading-relaxed">
-                    {q.questionText ?? <span className="italic text-slate-400">Image-only question</span>}
-                  </p>
+                  <QuestionContent
+                    questionText={q.questionText}
+                    questionImageUrl={q.questionImageUrl}
+                    latexContent={q.latexContent}
+                    questionNumber={i + 1}
+                    className="text-sm"
+                  />
                   {q.optionsJson.length > 0 && (
                     <div className="mt-2 flex flex-col gap-1">
                       {q.optionsJson.map((opt) => (
@@ -157,7 +163,11 @@ export function TestDetailPage() {
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
                           )}
-                          {opt.optionText ?? 'Image option'}
+                          <OptionContent
+                            optionText={opt.optionText}
+                            optionImageUrl={opt.optionImageUrl}
+                            latexContent={opt.latexContent ?? null}
+                          />
                         </div>
                       ))}
                     </div>
