@@ -48,6 +48,7 @@ export function subjectKeyboard(subjects: CatalogSubject[], page = 0): InlineKB 
 
 export function chapterKeyboard(chapters: CatalogChapter[], page = 0): InlineKB {
   const rows = paginatedRows(chapters, page, 'sel_cha', 'pag_cha');
+  rows.push([Markup.button.callback('➕ New Chapter', 'crt_cha')]);
   rows.push([Markup.button.callback('↩ Change Subject', 'chg_sub')]);
   return Markup.inlineKeyboard(rows);
 }
@@ -56,6 +57,7 @@ export function chapterKeyboard(chapters: CatalogChapter[], page = 0): InlineKB 
 
 export function topicKeyboard(topics: CatalogTopic[], page = 0): InlineKB {
   const rows = paginatedRows(topics, page, 'sel_top', 'pag_top');
+  rows.push([Markup.button.callback('➕ New Topic', 'crt_top')]);
   rows.push([Markup.button.callback('↩ Change Chapter', 'chg_cha')]);
   return Markup.inlineKeyboard(rows);
 }

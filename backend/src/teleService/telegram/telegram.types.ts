@@ -5,7 +5,9 @@ export type ConversationStep =
   | 'AWAITING_TYPE'
   | 'AWAITING_ANSWER'
   | 'CONFIRMING'
-  | 'UPLOADING_IN_PROGRESS'; // lock against double-tap race — cleared by clearUploadFlow
+  | 'UPLOADING_IN_PROGRESS' // lock against double-tap race — cleared by clearUploadFlow
+  | 'CREATING_CHAPTER'      // waiting for user to type a new chapter name
+  | 'CREATING_TOPIC';       // waiting for user to type a new topic name
 
 export interface TelegramSession {
   // Cached teacher identity — populated on first auth, persists in session

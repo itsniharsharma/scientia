@@ -35,6 +35,7 @@ import { uploadMetrics } from '../metrics';
 import { runCleanup } from '../jobs/cleanup';
 import { consumeLinkToken, linkTeacherToTelegram } from './telegram.link';
 import { validateAnswerOrNull } from '../services/validation.service';
+import { createChapterInBot, createTopicInBot } from './telegram.create';
 
 // ── Internal utilities ────────────────────────────────────────────────────────
 
@@ -60,20 +61,25 @@ function typeLabel(type: UploadQuestionType): string {
 
 function getAnswerFormatHint(type: UploadQuestionType): string {
   const map: Record<UploadQuestionType, string> = {
-    SINGLE:     'Type the correct letter: <b>A</b>, <b>B</b>, <b>C</b>, or <b>D</b>',
-    MULTI:      'Type all correct letters without spaces, e.g. <b>ABD</b>',
+    SINGLE:     'Type the correct option: <b>1</b>, <b>2</b>, <b>3</b>, or <b>4</b>\n<i>(A, B, C, D also accepted)</i>',
+    MULTI:      'Type all correct options without spaces, e.g. <b>12</b> or <b>134</b>\n<i>(letters like ABD also accepted)</i>',
     INTEGER:    'Type the correct whole number, e.g. <b>42</b> or <b>-5</b>',
     TRUE_FALSE: 'Type <b>True</b> or <b>False</b>',
   };
   return map[type];
 }
 
+// Maps 1–4 to A–D so downstream code (buildOptions) always receives letters
+function digitToLetter(c: string): string {
+  return { '1': 'A', '2': 'B', '3': 'C', '4': 'D' }[c] ?? c;
+}
+
 function normalizeAnswer(type: UploadQuestionType, raw: string): string {
-  const a = raw.trim();
-  if (type === 'SINGLE') return a.toUpperCase();
-  // Sort MULTI letters alphabetically so storage is canonical (e.g. "DAC" → "ACD")
-  if (type === 'MULTI')  return a.toUpperCase().split('').sort().join('');
-  if (type === 'TRUE_FALSE') return a.charAt(0).toUpperCase() + a.slice(1).toLowerCase();
+  const a = raw.trim().toUpperCase();
+  if (type === 'SINGLE') return digitToLetter(a);
+  // Deduplicate, convert digits, sort alphabetically (e.g. "31B" → "ABC")
+  if (type === 'MULTI')  return [...new Set(a.split('').map(digitToLetter))].sort().join('');
+  if (type === 'TRUE_FALSE') return a.charAt(0) + a.slice(1).toLowerCase();
   return a; // INTEGER: preserve as-is
 }
 
@@ -130,8 +136,8 @@ async function selectSubject(ctx: BotContext, id: string): Promise<void> {
   if (!chapters.length) {
     await safeEdit(
       ctx,
-      `📚 <b>${subject.name}</b>\n\n⚠️ No chapters yet. Ask the administrator to add chapters.`,
-      { parse_mode: 'HTML' },
+      `📚 <b>${subject.name}</b>\n\n📭 No chapters yet — tap <b>➕ New Chapter</b> to create one.`,
+      { parse_mode: 'HTML', reply_markup: chapterKeyboard([], 0).reply_markup },
     );
     return;
   }
@@ -161,8 +167,8 @@ async function selectChapter(ctx: BotContext, id: string): Promise<void> {
   if (!topics.length) {
     await safeEdit(
       ctx,
-      `📖 <b>${chapter.name}</b>\n\n⚠️ No topics yet. Ask the administrator to add topics.`,
-      { parse_mode: 'HTML' },
+      `📖 <b>${chapter.name}</b>\n\n📭 No topics yet — tap <b>➕ New Topic</b> to create one.`,
+      { parse_mode: 'HTML', reply_markup: topicKeyboard([], 0).reply_markup },
     );
     return;
   }
@@ -333,6 +339,104 @@ function buildSuccessMessage(params: {
     '━━━━━━━━━━━━━━━━━━━━━━',
   ].join('\n');
 }
+
+// ── Create-chapter flow ───────────────────────────────────────────────────────
+
+async function startCreateChapter(ctx: BotContext): Promise<void> {
+  if (!ctx.session.subjectId) {
+    await safeEdit(ctx, '📍 Please select a subject first. Send /start.');
+    return;
+  }
+  ctx.session.step = 'CREATING_CHAPTER';
+  await safeEdit(
+    ctx,
+    `📚 <b>${ctx.session.subjectName}</b>\n\n📝 Type the name for the new chapter:`,
+    { parse_mode: 'HTML' },
+  );
+}
+
+async function handleCreateChapterText(ctx: BotContext, text: string): Promise<void> {
+  const name = text.trim();
+  if (!name) {
+    await ctx.reply('❌ Chapter name cannot be empty. Type a name or send /cancel to abort.');
+    return;
+  }
+  if (name.length > 100) {
+    await ctx.reply('❌ Chapter name is too long (max 100 characters). Please try a shorter name:');
+    return;
+  }
+
+  const { subjectId } = ctx.session;
+  if (!subjectId) {
+    ctx.session.step = undefined;
+    await ctx.reply('⚠️ Session expired. Send /start to begin.');
+    return;
+  }
+
+  try {
+    const chapter = await createChapterInBot(subjectId, name);
+    ctx.session.chapterId   = chapter.id;
+    ctx.session.chapterName = chapter.name;
+    ctx.session.topicId     = undefined;
+    ctx.session.topicName   = undefined;
+    // Immediately flow into topic creation — the new chapter has no topics yet
+    ctx.session.step = 'CREATING_TOPIC';
+    await ctx.reply(
+      `✅ <b>Chapter created: ${chapter.name}</b>\n\n📝 Now type a name for the first topic:`,
+      { parse_mode: 'HTML' },
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Failed to create chapter.';
+    await ctx.reply(`❌ ${msg}\n\nTry a different name or send /cancel to abort.`);
+  }
+}
+
+// ── Create-topic flow ─────────────────────────────────────────────────────────
+
+async function startCreateTopic(ctx: BotContext): Promise<void> {
+  if (!ctx.session.chapterId) {
+    await safeEdit(ctx, '📍 Please select a chapter first. Send /start.');
+    return;
+  }
+  ctx.session.step = 'CREATING_TOPIC';
+  await safeEdit(
+    ctx,
+    `📖 <b>${ctx.session.chapterName}</b>\n\n📝 Type the name for the new topic:`,
+    { parse_mode: 'HTML' },
+  );
+}
+
+async function handleCreateTopicText(ctx: BotContext, text: string): Promise<void> {
+  const name = text.trim();
+  if (!name) {
+    await ctx.reply('❌ Topic name cannot be empty. Type a name or send /cancel to abort.');
+    return;
+  }
+  if (name.length > 100) {
+    await ctx.reply('❌ Topic name is too long (max 100 characters). Please try a shorter name:');
+    return;
+  }
+
+  const { chapterId } = ctx.session;
+  if (!chapterId) {
+    ctx.session.step = undefined;
+    await ctx.reply('⚠️ Session expired. Send /start to begin.');
+    return;
+  }
+
+  try {
+    const topic = await createTopicInBot(chapterId, name);
+    ctx.session.topicId   = topic.id;
+    ctx.session.topicName = topic.name;
+    ctx.session.step      = undefined;
+    await showReady(ctx);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Failed to create topic.';
+    await ctx.reply(`❌ ${msg}\n\nTry a different name or send /cancel to abort.`);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 async function confirmUpload(ctx: BotContext): Promise<void> {
   // ── Re-entry guard ────────────────────────────────────────────────────────────
@@ -605,6 +709,7 @@ export async function handleHelp(ctx: BotContext): Promise<void> {
     '📖 <b>Question Warehouse — Help</b>\n\n' +
     '<b>How to upload a question:</b>\n' +
     '1️⃣  Select Subject → Chapter → Topic\n' +
+    '     (tap <b>➕ New Chapter</b> or <b>➕ New Topic</b> to create)\n' +
     '2️⃣  Send a photo of the question\n' +
     '3️⃣  Choose the question type\n' +
     '4️⃣  Type the correct answer\n' +
@@ -613,7 +718,7 @@ export async function handleHelp(ctx: BotContext): Promise<void> {
     '/start — Main menu / resume navigation\n' +
     '/current — Show current subject / chapter / topic\n' +
     '/change — Change subject, chapter, or topic\n' +
-    '/cancel — Cancel an in-progress upload\n' +
+    '/cancel — Cancel an in-progress upload or creation\n' +
     '/cleanup — Retry orphaned upload jobs (Admin)\n' +
     '/help — This message',
     { parse_mode: 'HTML' },
@@ -681,12 +786,13 @@ export async function handleCancel(ctx: BotContext): Promise<void> {
   const { step } = ctx.session;
 
   if (!step) {
-    await ctx.reply('ℹ️ No upload is currently in progress.');
+    await ctx.reply('ℹ️ No active operation to cancel.');
     return;
   }
 
+  const isCreateFlow = step === 'CREATING_CHAPTER' || step === 'CREATING_TOPIC';
   ctx.session = clearUploadFlow(ctx.session);
-  await ctx.reply('🚫 Upload cancelled.');
+  await ctx.reply(isCreateFlow ? '🚫 Creation cancelled.' : '🚫 Upload cancelled.');
 
   if (ctx.session.topicId) {
     await showReady(ctx);
@@ -696,6 +802,13 @@ export async function handleCancel(ctx: BotContext): Promise<void> {
 // ── Photo handler ─────────────────────────────────────────────────────────────
 
 export async function handlePhoto(ctx: BotContext): Promise<void> {
+  // Guard: user is mid-way through naming a new chapter or topic
+  if (ctx.session.step === 'CREATING_CHAPTER' || ctx.session.step === 'CREATING_TOPIC') {
+    const what = ctx.session.step === 'CREATING_CHAPTER' ? 'chapter' : 'topic';
+    await ctx.reply(`📝 Please type the ${what} name first, or send /cancel to abort.`);
+    return;
+  }
+
   if (!ctx.session.topicId) {
     const subjects = await getSubjects();
     await ctx.reply(
@@ -751,6 +864,10 @@ export async function handleText(ctx: BotContext): Promise<void> {
 
   const { step, questionType } = ctx.session;
 
+  // Create flows take priority — user is typing a name, not an answer
+  if (step === 'CREATING_CHAPTER') { await handleCreateChapterText(ctx, text); return; }
+  if (step === 'CREATING_TOPIC')   { await handleCreateTopicText(ctx, text);   return; }
+
   if (step !== 'AWAITING_ANSWER' || !questionType) {
     if (!ctx.session.topicId) {
       await ctx.reply('📍 Please select a topic first.\n\nSend /start to begin.');
@@ -798,11 +915,13 @@ export async function handleCallback(ctx: BotContext): Promise<void> {
   if (data.startsWith('sel_cha:')) return selectChapter(ctx, data.slice(8));
   if (data.startsWith('pag_cha:')) return pageChapters(ctx, parseInt(data.slice(8), 10));
   if (data === 'chg_cha')           return changeChapter(ctx);
+  if (data === 'crt_cha')           return startCreateChapter(ctx);
 
   // Navigation — topics
   if (data.startsWith('sel_top:')) return selectTopic(ctx, data.slice(8));
   if (data.startsWith('pag_top:')) return pageTopics(ctx, parseInt(data.slice(8), 10));
   if (data === 'chg_top')           return changeTopic(ctx);
+  if (data === 'crt_top')           return startCreateTopic(ctx);
 
   // Upload flow
   if (data.startsWith('sel_typ:')) return selectType(ctx, data.slice(8) as UploadQuestionType);

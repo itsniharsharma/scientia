@@ -1,5 +1,6 @@
 import app from './app';
 import { logger } from './shared/logger';
+import { getBot } from './teleService/telegram/telegram.bot';
 
 const REQUIRED_ENV = [
   'JWT_SECRET',
@@ -34,12 +35,25 @@ const PORT = process.env.PORT ?? 3001;
 
 const server = app.listen(PORT, () => {
   logger.info('Backend started', { port: PORT, env: process.env.NODE_ENV ?? 'development' });
+
+  // In polling mode (local dev), start the bot via long-polling.
+  // This auto-deletes any existing webhook so Telegram stops pushing to Render.
+  if (process.env.TELEGRAM_MODE === 'polling') {
+    const bot = getBot();
+    bot.launch({ dropPendingUpdates: true }).catch((err: unknown) => {
+      logger.error('TELEGRAM_POLLING_ERROR', { error: err instanceof Error ? err.message : String(err) });
+    });
+    logger.info('TELEGRAM_POLLING_STARTED');
+  }
 });
 
 // Graceful shutdown: let in-flight requests (including uploads) complete before exit.
 // Render (and most platforms) send SIGTERM before killing the process on deploy.
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received — initiating graceful shutdown');
+  if (process.env.TELEGRAM_MODE === 'polling') {
+    try { getBot().stop('SIGTERM'); } catch { /* already stopped */ }
+  }
   server.close(() => {
     logger.info('HTTP server closed — all connections drained, exiting');
     process.exit(0);
