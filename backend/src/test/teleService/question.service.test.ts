@@ -12,15 +12,15 @@ import { createQuestion } from '../../modules/questions/questions.service';
 const mockCreateQuestion = vi.mocked(createQuestion);
 
 const BASE_PARAMS = {
-  topicId:  'topic-1',
-  publicId: 'scientia/questions/topic-1/abc123',
+  topicId:   'topic-1',
+  secureUrl: 'https://res.cloudinary.com/denbytwkt/image/upload/scientia/questions/topic-1/abc123',
 } as const;
 
 function fakeQuestion(overrides: Partial<Question> = {}): Question {
   return {
     id:              'question-1',
     type:            'SINGLE_CHOICE',
-    questionImageUrl: BASE_PARAMS.publicId,
+    questionImageUrl: BASE_PARAMS.secureUrl,
     topicId:         BASE_PARAMS.topicId,
     options:         [],
     integerAnswer:   null,
@@ -186,11 +186,11 @@ describe('QuestionService', () => {
 
   // ── Passthrough + Error handling ─────────────────────────────────────────────
 
-  it('forwards publicId as questionImageUrl', async () => {
+  it('forwards secureUrl as questionImageUrl', async () => {
     await service.create({ ...BASE_PARAMS, questionType: 'SINGLE', correctAnswer: 'A' });
     expect(mockCreateQuestion).toHaveBeenCalledWith(
       BASE_PARAMS.topicId,
-      expect.objectContaining({ questionImageUrl: BASE_PARAMS.publicId }),
+      expect.objectContaining({ questionImageUrl: BASE_PARAMS.secureUrl }),
     );
   });
 

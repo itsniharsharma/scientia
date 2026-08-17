@@ -8,11 +8,11 @@ import type { CreateOptionInput } from '@scientia/validators';
 export class QuestionService {
   async create(params: {
     topicId:        string;
-    publicId:       string;
+    secureUrl:      string;
     questionType:   UploadQuestionType;
     correctAnswer:  string;
   }): Promise<Question> {
-    const { topicId, publicId, questionType, correctAnswer } = params;
+    const { topicId, secureUrl, questionType, correctAnswer } = params;
 
     const dbType       = toDbQuestionType(questionType);
     const options      = buildOptions(questionType, correctAnswer);
@@ -22,7 +22,7 @@ export class QuestionService {
     try {
       return await createQuestion(topicId, {
         type:             dbType,
-        questionImageUrl: publicId,
+        questionImageUrl: secureUrl,
         options,
         integerAnswer,
       });

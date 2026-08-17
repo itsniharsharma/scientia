@@ -94,7 +94,7 @@ export class UploadService {
 
       const question = await this.questions.create({
         topicId,
-        publicId: cloudinaryPublicId,
+        secureUrl: cloudinaryData.secureUrl,
         questionType,
         correctAnswer,
       });

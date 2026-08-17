@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAttempt, saveResponses, submitAttempt } from '../../lib/attempts.api';
+import { createRequestQueue } from '../../lib/requestQueue';
 import { ROUTES } from '../../routes';
 import type { AttemptWithDetailsDto, SelectedAnswer } from '../../types/attempt';
 import type { TestQuestionDto, TestOptionSnapshot } from '../../types/test';
@@ -303,6 +304,10 @@ export function ExamRunnerPage() {
   const autosaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pendingSaveRef = useRef<Set<string>>(new Set());
+  // Every save request goes through this queue so they always land at the
+  // server in the order they were made — prevents an in-flight request
+  // carrying a stale answer from overwriting a newer one that finished first.
+  const saveQueueRef = useRef(createRequestQueue());
   // Stable refs so intervals always call the latest callbacks without restarting
   const flushPendingSaveRef = useRef<() => void>(() => {});
   const handleAutoSubmitRef = useRef<() => void>(() => {});
@@ -389,9 +394,31 @@ export function ExamRunnerPage() {
     }
   }, [currentIndex, attempt, loading]);
 
+  // ─── Save queue ───────────────────────────────────────────────────────────────
+  // Enqueues a save through the FIFO request queue so it only fires after every
+  // earlier save has finished — guarantees the server always sees answers in
+  // the order the student made them, so a slow older request can never clobber
+  // a newer one. Ordering guarantee is covered by src/lib/requestQueue.test.ts.
+  const enqueueSave = useCallback(
+    (payload: { testQuestionId: string; selectedAnswerJson: SelectedAnswer | null }[]) => {
+      if (!attemptId || payload.length === 0) return saveQueueRef.current.settled();
+      const ids = payload.map((p) => p.testQuestionId);
+      return saveQueueRef.current.enqueue(() =>
+        saveResponses(attemptId, payload).catch(() => {
+          // Re-queue on failure so the next flush retries them
+          ids.forEach((id) => pendingSaveRef.current.add(id));
+        }),
+      );
+    },
+    [attemptId],
+  );
+
   // ─── Autosave flush ─────────────────────────────────────────────────────────
+  // Returns a promise that resolves once this flush (and every save queued
+  // before it) has settled, so callers (e.g. submit) can await actual
+  // completion instead of just firing the request and moving on.
   const flushPendingSave = useCallback(() => {
-    if (!attemptId || pendingSaveRef.current.size === 0) return;
+    if (pendingSaveRef.current.size === 0) return saveQueueRef.current.settled();
     const ids = Array.from(pendingSaveRef.current);
     pendingSaveRef.current = new Set();
 
@@ -400,11 +427,8 @@ export function ExamRunnerPage() {
       selectedAnswerJson: responses.get(qId) ?? null,
     }));
 
-    saveResponses(attemptId, payload).catch(() => {
-      // Re-queue on failure
-      ids.forEach((id) => pendingSaveRef.current.add(id));
-    });
-  }, [attemptId, responses]);
+    return enqueueSave(payload);
+  }, [enqueueSave, responses]);
 
   // Keep ref in sync so the stable autosave interval always calls the latest flush
   flushPendingSaveRef.current = flushPendingSave;
@@ -417,17 +441,12 @@ export function ExamRunnerPage() {
         next.set(qId, answer);
         return next;
       });
-      pendingSaveRef.current.add(qId);
-      // Immediate save on answer change
-      if (attemptId) {
-        saveResponses(attemptId, [{ testQuestionId: qId, selectedAnswerJson: answer }]).catch(
-          () => {
-            pendingSaveRef.current.add(qId);
-          },
-        );
-      }
+      // Send through the same ordered queue instead of a separate fire-and-forget
+      // call — avoids two unordered in-flight requests racing for this question.
+      pendingSaveRef.current.delete(qId);
+      enqueueSave([{ testQuestionId: qId, selectedAnswerJson: answer }]);
     },
-    [attemptId],
+    [enqueueSave],
   );
 
   // ─── Navigation ──────────────────────────────────────────────────────────────
@@ -455,8 +474,11 @@ export function ExamRunnerPage() {
   const handleAutoSubmit = useCallback(async () => {
     if (!attemptId) return;
     try {
-      // Best-effort flush — fire-and-forget so a rejected late-save never blocks submit
-      flushPendingSave();
+      // Wait for the last answer(s) to actually land before scoring — otherwise
+      // the attempt can be submitted while a save is still in flight, and the
+      // question gets scored as unattempted. enqueueSave never rejects (failures
+      // are caught and re-queued), so this can't hang the submit on an error.
+      await flushPendingSave();
       await submitAttempt(attemptId);
       clearLocalState(attemptId);
       navigate(ROUTES.STUDENT_RESULT(attemptId), { replace: true });
@@ -471,7 +493,9 @@ export function ExamRunnerPage() {
     if (!attemptId) return;
     setSubmitting(true);
     try {
-      flushPendingSave();
+      // Wait for the last answer(s) to actually land before scoring — see
+      // handleAutoSubmit for why this must be awaited, not fire-and-forget.
+      await flushPendingSave();
       await submitAttempt(attemptId);
       clearLocalState(attemptId);
       navigate(ROUTES.STUDENT_RESULT(attemptId), { replace: true });

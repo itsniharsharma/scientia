@@ -420,13 +420,13 @@ describe('UploadService', () => {
       );
     });
 
-    it('passes publicId + questionType + correctAnswer to questions.create', async () => {
+    it('passes secureUrl + questionType + correctAnswer to questions.create', async () => {
       const req = makeRequest();
       await service.upload(req);
 
       expect(services.questions.create).toHaveBeenCalledWith({
         topicId:       TEST_TOPIC_ID,
-        publicId:      TEST_PUBLIC_ID,
+        secureUrl:     CLOUDINARY_SUCCESS.secureUrl,
         questionType:  req.questionType,
         correctAnswer: req.correctAnswer,
       });
