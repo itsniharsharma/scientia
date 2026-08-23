@@ -85,14 +85,23 @@ export async function getQuestionById(id: string): Promise<Question> {
 export async function createQuestion(
   topicId: string,
   data: CreateQuestionInput,
+  status?: QuestionStatus,
 ): Promise<Question> {
   await getTopicById(topicId);
+
+  // Enforced regardless of caller: the HTTP layer's Zod schema already blocks
+  // malformed answers for admin-created questions, but internal callers (e.g.
+  // the Telegram upload pipeline) call this service directly, bypassing that
+  // schema — so the same structural guarantee (right number of correct
+  // options for the type) is re-checked here before anything is written.
+  validateAnswerRules(data.type, data.options, data.integerAnswer);
 
   const created = await prisma.$transaction(async (tx) => {
     const question = await tx.question.create({
       data: {
         topicId,
         type: data.type,
+        status: status ?? 'DRAFT',
         questionText: data.questionText ?? null,
         questionImageUrl: data.questionImageUrl ?? null,
         latexContent: data.latexContent ?? null,
@@ -153,6 +162,14 @@ export async function updateQuestion(
     }
   }
 
+  const effectiveStatus = data.status !== undefined ? data.status : existing.status;
+  if (effectiveStatus === 'PUBLISHED') {
+    const effectiveOptions = data.options !== undefined ? data.options : existing.options;
+    const effectiveIntegerAnswer =
+      data.integerAnswer !== undefined ? data.integerAnswer : existing.integerAnswer;
+    validateAnswerRules(existing.type, effectiveOptions, effectiveIntegerAnswer);
+  }
+
   await prisma.$transaction(async (tx) => {
     await tx.question.update({
       where: { id },
@@ -168,6 +185,9 @@ export async function updateQuestion(
         }),
         ...(data.integerAnswer !== undefined && {
           integerAnswer: data.integerAnswer,
+        }),
+        ...(data.status !== undefined && {
+          status: data.status,
         }),
       },
     });

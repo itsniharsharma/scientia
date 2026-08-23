@@ -52,4 +52,5 @@ export interface UpdateQuestionDto {
   questionImageUrl?: string | null;
   options?: UpdateOptionDto[];
   integerAnswer?: number | null;
+  status?: QuestionStatus;
 }

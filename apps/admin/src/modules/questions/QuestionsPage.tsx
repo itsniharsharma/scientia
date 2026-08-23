@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Question } from '@scientia/types';
-import { useQuestions } from './hooks/use-questions';
+import { useQuestions, useUpdateQuestion } from './hooks/use-questions';
 import { QuestionList } from './QuestionList';
 import { CreateQuestionDialog } from './CreateQuestionDialog';
 import { EditQuestionDialog } from './EditQuestionDialog';
@@ -9,6 +9,7 @@ import { Button } from '../../shared/components/Button';
 import { Spinner } from '../../shared/components/Spinner';
 import { EmptyState } from '../../shared/components/EmptyState';
 import { useNavigationStore } from '../../store/navigation.store';
+import { ApiError } from '../../lib/api';
 
 interface QuestionsPageProps {
   topicId: string;
@@ -28,6 +29,26 @@ function QuestionsPage({
   const [editTarget, setEditTarget] = useState<Question | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Question | null>(null);
   const { selectSubject, selectChapter, selectTopic } = useNavigationStore();
+  const { mutateAsync: updateQuestion } = useUpdateQuestion(topicId);
+  const [publishPendingId, setPublishPendingId] = useState<string | null>(null);
+  const [publishError, setPublishError] = useState<string | null>(null);
+
+  async function handleTogglePublish(question: Question) {
+    const nextStatus = question.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
+    setPublishPendingId(question.id);
+    setPublishError(null);
+    try {
+      await updateQuestion({ id: question.id, data: { status: nextStatus } });
+    } catch (err) {
+      setPublishError(
+        err instanceof ApiError
+          ? err.message
+          : 'Failed to update question status. Please try again.',
+      );
+    } finally {
+      setPublishPendingId(null);
+    }
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -95,11 +116,25 @@ function QuestionsPage({
           />
         )}
 
+        {publishError && (
+          <div className="mb-4 flex items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-5 py-3">
+            <p className="text-sm text-red-700">{publishError}</p>
+            <button
+              onClick={() => setPublishError(null)}
+              className="shrink-0 text-sm font-medium text-red-600 hover:text-red-800"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {!isLoading && !isError && questions && questions.length > 0 && (
           <QuestionList
             questions={questions}
             onEdit={setEditTarget}
             onDelete={setDeleteTarget}
+            onTogglePublish={handleTogglePublish}
+            publishPendingId={publishPendingId}
           />
         )}
       </div>

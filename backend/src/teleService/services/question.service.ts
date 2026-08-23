@@ -20,12 +20,20 @@ export class QuestionService {
       questionType === 'INTEGER' ? parseInt(correctAnswer.trim(), 10) : undefined;
 
     try {
-      return await createQuestion(topicId, {
-        type:             dbType,
-        questionImageUrl: secureUrl,
-        options,
-        integerAnswer,
-      });
+      // Telegram uploads are published immediately — the teacher never
+      // reviews via the admin app, so there is no separate approval step.
+      // validateAnswerRules (enforced inside createQuestion) still guards
+      // against a malformed answer ever reaching students.
+      return await createQuestion(
+        topicId,
+        {
+          type:             dbType,
+          questionImageUrl: secureUrl,
+          options,
+          integerAnswer,
+        },
+        'PUBLISHED',
+      );
     } catch (err) {
       throw new UploadDatabaseError(
         'Failed to write question to database',

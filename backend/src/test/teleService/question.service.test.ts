@@ -47,6 +47,7 @@ describe('QuestionService', () => {
       expect(mockCreateQuestion).toHaveBeenCalledWith(
         BASE_PARAMS.topicId,
         expect.objectContaining({ type: 'SINGLE_CHOICE' }),
+        'PUBLISHED',
       );
     });
 
@@ -79,6 +80,7 @@ describe('QuestionService', () => {
       expect(mockCreateQuestion).toHaveBeenCalledWith(
         BASE_PARAMS.topicId,
         expect.objectContaining({ type: 'MULTI_CHOICE' }),
+        'PUBLISHED',
       );
     });
 
@@ -114,6 +116,7 @@ describe('QuestionService', () => {
       expect(mockCreateQuestion).toHaveBeenCalledWith(
         BASE_PARAMS.topicId,
         expect.objectContaining({ type: 'INTEGER' }),
+        'PUBLISHED',
       );
     });
 
@@ -150,6 +153,7 @@ describe('QuestionService', () => {
       expect(mockCreateQuestion).toHaveBeenCalledWith(
         BASE_PARAMS.topicId,
         expect.objectContaining({ type: 'SINGLE_CHOICE' }),
+        'PUBLISHED',
       );
     });
 
@@ -191,6 +195,16 @@ describe('QuestionService', () => {
     expect(mockCreateQuestion).toHaveBeenCalledWith(
       BASE_PARAMS.topicId,
       expect.objectContaining({ questionImageUrl: BASE_PARAMS.secureUrl }),
+      'PUBLISHED',
+    );
+  });
+
+  it('publishes the question immediately (no admin review step)', async () => {
+    await service.create({ ...BASE_PARAMS, questionType: 'SINGLE', correctAnswer: 'A' });
+    expect(mockCreateQuestion).toHaveBeenCalledWith(
+      BASE_PARAMS.topicId,
+      expect.anything(),
+      'PUBLISHED',
     );
   });
 

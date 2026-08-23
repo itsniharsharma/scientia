@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 const QUESTION_TYPES = ['SINGLE_CHOICE', 'MULTI_CHOICE', 'INTEGER'] as const;
+const QUESTION_STATUSES = ['DRAFT', 'PUBLISHED'] as const;
 
 const createOptionSchema = z
   .object({
@@ -130,6 +131,9 @@ export const updateQuestionSchema = z
       .int('integerAnswer must be an integer')
       .nullable()
       .optional(),
+    status: z.enum(QUESTION_STATUSES, {
+      invalid_type_error: 'Invalid question status',
+    }).optional(),
   })
   .superRefine((data, ctx) => {
     const hasAnyField =
@@ -137,7 +141,8 @@ export const updateQuestionSchema = z
       data.questionImageUrl !== undefined ||
       data.latexContent !== undefined ||
       data.options !== undefined ||
-      data.integerAnswer !== undefined;
+      data.integerAnswer !== undefined ||
+      data.status !== undefined;
 
     if (!hasAnyField) {
       ctx.addIssue({

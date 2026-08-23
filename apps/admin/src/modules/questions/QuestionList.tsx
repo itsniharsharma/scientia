@@ -1,9 +1,11 @@
-import type { Question, QuestionType } from '@scientia/types';
+import type { Question, QuestionStatus, QuestionType } from '@scientia/types';
 
 interface QuestionListProps {
   questions: Question[];
   onEdit: (question: Question) => void;
   onDelete: (question: Question) => void;
+  onTogglePublish: (question: Question) => void;
+  publishPendingId?: string | null;
 }
 
 const TYPE_LABELS: Record<QuestionType, string> = {
@@ -16,6 +18,16 @@ const TYPE_BADGE_CLASSES: Record<QuestionType, string> = {
   SINGLE_CHOICE: 'bg-blue-50 text-blue-700 ring-blue-200',
   MULTI_CHOICE: 'bg-purple-50 text-purple-700 ring-purple-200',
   INTEGER: 'bg-orange-50 text-orange-700 ring-orange-200',
+};
+
+const STATUS_LABELS: Record<QuestionStatus, string> = {
+  DRAFT: 'Draft',
+  PUBLISHED: 'Published',
+};
+
+const STATUS_BADGE_CLASSES: Record<QuestionStatus, string> = {
+  DRAFT: 'bg-gray-100 text-gray-600 ring-gray-300',
+  PUBLISHED: 'bg-green-50 text-green-700 ring-green-200',
 };
 
 function questionPreview(q: Question): string {
@@ -43,7 +55,13 @@ function formatDate(iso: string): string {
   });
 }
 
-function QuestionList({ questions, onEdit, onDelete }: QuestionListProps) {
+function QuestionList({
+  questions,
+  onEdit,
+  onDelete,
+  onTogglePublish,
+  publishPendingId,
+}: QuestionListProps) {
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
       <table className="min-w-full divide-y divide-gray-200">
@@ -54,6 +72,12 @@ function QuestionList({ questions, onEdit, onDelete }: QuestionListProps) {
               className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500"
             >
               Type
+            </th>
+            <th
+              scope="col"
+              className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500"
+            >
+              Status
             </th>
             <th
               scope="col"
@@ -91,6 +115,16 @@ function QuestionList({ questions, onEdit, onDelete }: QuestionListProps) {
                   {TYPE_LABELS[q.type]}
                 </span>
               </td>
+              <td className="px-5 py-3.5">
+                <span
+                  className={[
+                    'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
+                    STATUS_BADGE_CLASSES[q.status],
+                  ].join(' ')}
+                >
+                  {STATUS_LABELS[q.status]}
+                </span>
+              </td>
               <td className="px-5 py-3.5 text-sm text-gray-900">
                 {questionPreview(q)}
                 {q.questionImageUrl && (
@@ -106,7 +140,24 @@ function QuestionList({ questions, onEdit, onDelete }: QuestionListProps) {
                 {formatDate(q.createdAt)}
               </td>
               <td className="px-5 py-3.5">
-                <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => onTogglePublish(q)}
+                    disabled={publishPendingId === q.id}
+                    className={[
+                      'rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+                      q.status === 'PUBLISHED'
+                        ? 'text-gray-600 ring-gray-300 hover:bg-gray-50'
+                        : 'text-green-700 ring-green-300 hover:bg-green-50',
+                    ].join(' ')}
+                  >
+                    {publishPendingId === q.id
+                      ? '…'
+                      : q.status === 'PUBLISHED'
+                        ? 'Unpublish'
+                        : 'Publish'}
+                  </button>
+                  <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                   <button
                     onClick={() => onEdit(q)}
                     className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
@@ -147,6 +198,7 @@ function QuestionList({ questions, onEdit, onDelete }: QuestionListProps) {
                       />
                     </svg>
                   </button>
+                  </div>
                 </div>
               </td>
             </tr>
