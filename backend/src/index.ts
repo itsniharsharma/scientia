@@ -1,6 +1,7 @@
 import app from './app';
 import { logger } from './shared/logger';
 import { getBot } from './teleService/telegram/telegram.bot';
+import { validateJwtSecret, WeakJwtSecretError } from './shared/validate-jwt-secret';
 
 const REQUIRED_ENV = [
   'JWT_SECRET',
@@ -16,6 +17,19 @@ const missing = REQUIRED_ENV.filter((k) => !process.env[k]);
 if (missing.length > 0) {
   logger.error('Missing required environment variables — refusing to start', { missing });
   process.exit(1);
+}
+
+// Production-only: refuse to start on a missing/placeholder/too-short
+// JWT_SECRET rather than silently issuing forgeable tokens. No-op in
+// development/test — never logs the secret itself, only the reason.
+try {
+  validateJwtSecret(process.env.JWT_SECRET, process.env.NODE_ENV);
+} catch (err) {
+  if (err instanceof WeakJwtSecretError) {
+    logger.error('JWT_SECRET failed production validation — refusing to start', { reason: err.message });
+    process.exit(1);
+  }
+  throw err;
 }
 
 // Redis is optional — falls back to in-memory session store.

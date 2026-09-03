@@ -212,6 +212,9 @@ export async function deleteTestQuestion(
   });
   if (!tq) throw new NotFoundError('Test question not found');
   await prisma.testQuestion.delete({ where: { id: questionId } });
+  // Deleting a question changes the test's questionCount shown in the
+  // teacher's cached test list — must invalidate or it stays stale for TTL.
+  await invalidate(CACHE_KEYS.teacherTests(teacherId));
 }
 
 export async function addReplacementQuestion(
@@ -257,6 +260,9 @@ export async function addReplacementQuestion(
       position: data.position,
     },
   });
+  // Adding a replacement question changes the test's questionCount shown
+  // in the teacher's cached test list — must invalidate or it stays stale.
+  await invalidate(CACHE_KEYS.teacherTests(teacherId));
   return toTestQuestionDto(tq);
 }
 
@@ -320,6 +326,9 @@ export async function createTestQuestion(
         position: nextPosition,
       },
     });
+    // Adding a question changes the test's questionCount shown in the
+    // teacher's cached test list — must invalidate or it stays stale.
+    await invalidate(CACHE_KEYS.teacherTests(teacherId));
     return toTestQuestionDto(tq);
   }
 
@@ -376,6 +385,9 @@ export async function createTestQuestion(
     });
   });
 
+  // Adding a question changes the test's questionCount shown in the
+  // teacher's cached test list — must invalidate or it stays stale.
+  await invalidate(CACHE_KEYS.teacherTests(teacherId));
   return toTestQuestionDto(tq);
 }
 

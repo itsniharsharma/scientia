@@ -130,21 +130,35 @@ export async function startAttempt(
     throw new ConflictError('You have already started this test');
   }
 
-  // Create attempt + blank response rows in a transaction
-  const attempt = await prisma.$transaction(async (tx) => {
-    const newAttempt = await tx.attempt.create({
-      data: { studentId, testId },
-    });
+  // Create attempt + blank response rows in a transaction.
+  // The findUnique check above is not atomic with this create — under a
+  // concurrent double-submit (e.g. a double-tap on "Start Test"), both
+  // requests can pass the check before either commits, and the loser hits
+  // the DB's own @@unique([studentId, testId]) constraint (Prisma P2002).
+  // Caught here and converted to the same ConflictError the preflight
+  // check already throws, instead of leaking a raw 500.
+  let attempt;
+  try {
+    attempt = await prisma.$transaction(async (tx) => {
+      const newAttempt = await tx.attempt.create({
+        data: { studentId, testId },
+      });
 
-    await tx.response.createMany({
-      data: test.testQuestions.map((tq) => ({
-        attemptId: newAttempt.id,
-        testQuestionId: tq.id,
-      })),
-    });
+      await tx.response.createMany({
+        data: test.testQuestions.map((tq) => ({
+          attemptId: newAttempt.id,
+          testQuestionId: tq.id,
+        })),
+      });
 
-    return newAttempt;
-  });
+      return newAttempt;
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      throw new ConflictError('You have already started this test');
+    }
+    throw err;
+  }
 
   return buildAttemptWithDetails(attempt, test);
 }

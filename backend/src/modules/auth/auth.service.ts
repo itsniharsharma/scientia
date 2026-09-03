@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import { ConflictError, UnauthorizedError } from '../../shared/errors';
 import type {
@@ -73,14 +74,27 @@ export async function registerStudent(
 
   const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
 
-  const student = await prisma.student.create({
-    data: {
-      fullName: data.fullName.trim(),
-      phone: data.phone,
-      username: normalizedUsername,
-      password: hashedPassword,
-    },
-  });
+  // The findFirst check above is not atomic with this create — under a
+  // concurrent double-submit, both requests can pass the check before
+  // either commits, and the loser hits the DB's own unique constraint
+  // (Prisma P2002) instead of the friendly ConflictError above. Caught
+  // here and converted to the same conflict response instead of a raw 500.
+  let student;
+  try {
+    student = await prisma.student.create({
+      data: {
+        fullName: data.fullName.trim(),
+        phone: data.phone,
+        username: normalizedUsername,
+        password: hashedPassword,
+      },
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      throw new ConflictError('An account with this phone number or username already exists');
+    }
+    throw err;
+  }
 
   return { token: signToken(student.id, 'STUDENT'), user: toStudentDto(student) };
 }
