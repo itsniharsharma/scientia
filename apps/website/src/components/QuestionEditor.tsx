@@ -160,7 +160,7 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
 
       {/* Question type */}
       <div className="flex flex-col gap-1.5">
-        <p className="text-sm font-medium text-slate-700">Question type</p>
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Question type</p>
         <div className="flex gap-4">
           {(['SINGLE_CHOICE', 'MULTI_CHOICE', 'INTEGER'] as const).map((t) => (
             <label key={t} className="flex cursor-pointer items-center gap-2">
@@ -168,9 +168,9 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
                 type="radio"
                 value={t}
                 {...register('questionType')}
-                className="h-4 w-4 border-slate-300 text-brand-700 focus:ring-brand-700"
+                className="h-4 w-4 border-slate-300 text-brand-700 focus:ring-brand-700 dark:border-slate-600 dark:bg-slate-800"
               />
-              <span className="text-sm text-slate-700">
+              <span className="text-sm text-slate-700 dark:text-slate-200">
                 {t === 'SINGLE_CHOICE' ? 'Single Choice' : t === 'MULTI_CHOICE' ? 'Multiple Choice' : 'Integer'}
               </span>
             </label>
@@ -179,26 +179,26 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
       </div>
 
       {/* Question content */}
-      <div className="flex flex-col gap-3 rounded-md border border-slate-200 bg-slate-50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <div className="flex flex-col gap-3 rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Question content
         </p>
 
         {/* Question text */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">Question text</label>
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Question text</label>
           <textarea
             rows={3}
             placeholder="Enter the question…"
             className={[
-              'rounded-md border px-3 py-2 text-sm text-slate-900 placeholder-slate-400 resize-none',
-              'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent',
-              errors.questionText ? 'border-red-500' : 'border-slate-300',
+              'rounded-md border px-3 py-2 text-sm text-slate-900 placeholder-slate-400 resize-none dark:bg-slate-800 dark:text-white dark:placeholder-slate-500',
+              'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent dark:focus:ring-brand-500',
+              errors.questionText ? 'border-red-500 dark:border-red-600' : 'border-slate-300 dark:border-slate-600',
             ].join(' ')}
             {...register('questionText')}
           />
           {errors.questionText?.message && (
-            <p className="text-xs text-red-600" role="alert">{errors.questionText.message}</p>
+            <p className="text-xs text-red-600 dark:text-red-400" role="alert">{errors.questionText.message}</p>
           )}
         </div>
 
@@ -221,29 +221,29 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
 
         {/* LaTeX content */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
             LaTeX content{' '}
-            <span className="text-xs font-normal text-slate-400">(optional — rendered with KaTeX)</span>
+            <span className="text-xs font-normal text-slate-400 dark:text-slate-500">(optional — rendered with KaTeX)</span>
           </label>
           <textarea
             rows={3}
             placeholder="\frac{d}{dx}\left(x^n\right) = nx^{n-1}"
             className={[
-              'rounded-md border px-3 py-2 text-sm font-mono text-slate-900 placeholder-slate-400 resize-y',
-              'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent',
-              errors.latexContent ? 'border-red-500' : 'border-slate-300',
+              'rounded-md border px-3 py-2 text-sm font-mono text-slate-900 placeholder-slate-400 resize-y dark:bg-slate-800 dark:text-white dark:placeholder-slate-500',
+              'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent dark:focus:ring-brand-500',
+              errors.latexContent ? 'border-red-500 dark:border-red-600' : 'border-slate-300 dark:border-slate-600',
             ].join(' ')}
             {...register('latexContent')}
           />
           {errors.latexContent?.message && (
-            <p className="text-xs text-red-600" role="alert">{errors.latexContent.message}</p>
+            <p className="text-xs text-red-600 dark:text-red-400" role="alert">{errors.latexContent.message}</p>
           )}
         </div>
 
         {errors.root?.message &&
           !errors.questionText &&
           !errors.questionImageUrl && (
-            <p className="text-xs text-red-600" role="alert">
+            <p className="text-xs text-red-600 dark:text-red-400" role="alert">
               {errors.root.message}
             </p>
           )}
@@ -251,23 +251,23 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
 
       {/* INTEGER answer */}
       {questionType === 'INTEGER' && (
-        <div className="flex flex-col gap-3 rounded-md border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Answer</p>
+        <div className="flex flex-col gap-3 rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Answer</p>
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-slate-700">Correct integer answer</label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Correct integer answer</label>
             <input
               type="number"
               step="1"
               placeholder="0"
               className={[
-                'rounded-md border px-3 py-2 text-sm text-slate-900 placeholder-slate-400',
-                'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent',
-                errors.integerAnswer ? 'border-red-500' : 'border-slate-300',
+                'rounded-md border px-3 py-2 text-sm text-slate-900 placeholder-slate-400 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500',
+                'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent dark:focus:ring-brand-500',
+                errors.integerAnswer ? 'border-red-500 dark:border-red-600' : 'border-slate-300 dark:border-slate-600',
               ].join(' ')}
               {...register('integerAnswer', { valueAsNumber: true })}
             />
             {errors.integerAnswer?.message && (
-              <p className="text-xs text-red-600" role="alert">{errors.integerAnswer.message}</p>
+              <p className="text-xs text-red-600 dark:text-red-400" role="alert">{errors.integerAnswer.message}</p>
             )}
           </div>
         </div>
@@ -275,8 +275,8 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
 
       {/* Choice options */}
       {isChoiceType && (
-        <div className="flex flex-col gap-3 rounded-md border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <div className="flex flex-col gap-3 rounded-md border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Options
             {questionType === 'SINGLE_CHOICE'
               ? ' — select one correct answer'
@@ -284,7 +284,7 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
           </p>
 
           {(errors.options as { message?: string } | undefined)?.message && (
-            <p className="text-xs text-red-600" role="alert">
+            <p className="text-xs text-red-600 dark:text-red-400" role="alert">
               {(errors.options as { message?: string }).message}
             </p>
           )}
@@ -295,7 +295,7 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
             return (
               <div
                 key={field.id}
-                className="flex items-start gap-3 rounded-md border border-slate-200 bg-white p-3"
+                className="flex items-start gap-3 rounded-md border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"
               >
                 {/* Correct indicator */}
                 <div className="flex flex-col items-center gap-1 pt-6">
@@ -305,7 +305,7 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
                       name="question-correct"
                       checked={isCorrect}
                       onChange={() => handleSingleCorrect(index)}
-                      className="h-4 w-4 border-slate-300 text-brand-700 focus:ring-brand-700"
+                      className="h-4 w-4 border-slate-300 text-brand-700 focus:ring-brand-700 dark:border-slate-600 dark:bg-slate-900"
                       aria-label={`Mark option ${index + 1} as correct`}
                     />
                   ) : (
@@ -313,30 +313,30 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
                       type="checkbox"
                       checked={isCorrect}
                       onChange={(e) => handleMultiCorrect(index, e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-700"
+                      className="h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-700 dark:border-slate-600 dark:bg-slate-900"
                       aria-label={`Mark option ${index + 1} as correct`}
                     />
                   )}
-                  <span className="text-xs text-slate-400">{isCorrect ? '✓' : ''}</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{isCorrect ? '✓' : ''}</span>
                 </div>
 
                 {/* Option content */}
                 <div className="flex-1 space-y-2">
                   <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-slate-700">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                       Option {index + 1} text
                     </label>
                     <input
                       placeholder="Option text…"
                       className={[
-                        'rounded-md border px-3 py-2 text-sm text-slate-900 placeholder-slate-400',
-                        'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent',
-                        optErrors?.optionText ? 'border-red-500' : 'border-slate-300',
+                        'rounded-md border px-3 py-2 text-sm text-slate-900 placeholder-slate-400 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500',
+                        'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent dark:focus:ring-brand-500',
+                        optErrors?.optionText ? 'border-red-500 dark:border-red-600' : 'border-slate-300 dark:border-slate-600',
                       ].join(' ')}
                       {...register(`options.${index}.optionText`)}
                     />
                     {optErrors?.optionText?.message && (
-                      <p className="text-xs text-red-600" role="alert">
+                      <p className="text-xs text-red-600 dark:text-red-400" role="alert">
                         {optErrors.optionText.message}
                       </p>
                     )}
@@ -357,22 +357,22 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
                     )}
                   />
                   <div className="flex flex-col gap-1">
-                    <label className="text-sm font-medium text-slate-700">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
                       Option {index + 1} LaTeX{' '}
-                      <span className="text-xs font-normal text-slate-400">(optional)</span>
+                      <span className="text-xs font-normal text-slate-400 dark:text-slate-500">(optional)</span>
                     </label>
                     <textarea
                       rows={2}
                       placeholder="\int x^2 dx"
                       className={[
-                        'rounded-md border px-3 py-2 text-sm font-mono text-slate-900 placeholder-slate-400 resize-y',
-                        'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent',
-                        errors.options?.[index]?.latexContent ? 'border-red-500' : 'border-slate-300',
+                        'rounded-md border px-3 py-2 text-sm font-mono text-slate-900 placeholder-slate-400 resize-y dark:bg-slate-900 dark:text-white dark:placeholder-slate-500',
+                        'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent dark:focus:ring-brand-500',
+                        errors.options?.[index]?.latexContent ? 'border-red-500 dark:border-red-600' : 'border-slate-300 dark:border-slate-600',
                       ].join(' ')}
                       {...register(`options.${index}.latexContent` as FieldPath<CreateTestQuestionInput>)}
                     />
                     {errors.options?.[index]?.latexContent?.message && (
-                      <p className="text-xs text-red-600" role="alert">
+                      <p className="text-xs text-red-600 dark:text-red-400" role="alert">
                         {errors.options[index].latexContent.message}
                       </p>
                     )}
@@ -384,7 +384,7 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
                   <button
                     type="button"
                     onClick={() => { remove(index); void trigger(); }}
-                    className="mt-6 rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                    className="mt-6 rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-950/30 dark:hover:text-red-400"
                     aria-label={`Remove option ${index + 1}`}
                   >
                     <svg
@@ -406,7 +406,7 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
           <button
             type="button"
             onClick={addOption}
-            className="flex items-center gap-1.5 self-start rounded-md border border-dashed border-slate-300 px-3 py-1.5 text-sm text-slate-500 hover:border-slate-400 hover:text-slate-700"
+            className="flex items-center gap-1.5 self-start rounded-md border border-dashed border-slate-300 px-3 py-1.5 text-sm text-slate-500 hover:border-slate-400 hover:text-slate-700 dark:border-slate-600 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-200"
           >
             <svg
               className="h-3.5 w-3.5"
@@ -428,7 +428,7 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
         <div className="mt-0.5">
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-700"
+            className="h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-700 dark:border-slate-600 dark:bg-slate-800"
             {...register('publishToQuestionBank')}
             onChange={(e) => {
               setValue('publishToQuestionBank', e.target.checked);
@@ -440,8 +440,8 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
           />
         </div>
         <div>
-          <p className="text-sm font-semibold text-slate-800">Also publish to Question Bank</p>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Also publish to Question Bank</p>
+          <p className="text-xs text-slate-500 mt-0.5 dark:text-slate-400">
             Creates a permanent copy in the bank so it can be reused in future tests.
           </p>
         </div>
@@ -449,20 +449,20 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
 
       {/* Topic picker — only when publishing */}
       {publishToBank && (
-        <div className="rounded-md border border-slate-200 bg-slate-50 p-4 flex flex-col gap-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-4 flex flex-col gap-4 dark:border-slate-700 dark:bg-slate-900/60">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Question Bank Placement
           </p>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-slate-700">Chapter</label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Chapter</label>
             <select
               value={chapterId}
               onChange={(e) => {
                 setChapterId(e.target.value);
                 setValue('topicId', undefined);
               }}
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-brand-500"
             >
               <option value="">Select a chapter…</option>
               {chapters.map((c) => (
@@ -472,12 +472,12 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-slate-700">Topic</label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Topic</label>
             <select
               disabled={!chapterId}
               className={[
-                'rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900',
-                'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent',
+                'rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white',
+                'focus:outline-none focus:ring-2 focus:ring-brand-700 focus:border-transparent dark:focus:ring-brand-500',
                 !chapterId ? 'opacity-50 cursor-not-allowed' : '',
               ].join(' ')}
               {...register('topicId')}
@@ -488,7 +488,7 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
               ))}
             </select>
             {errors.topicId?.message && (
-              <p className="text-xs text-red-600" role="alert">{errors.topicId.message}</p>
+              <p className="text-xs text-red-600 dark:text-red-400" role="alert">{errors.topicId.message}</p>
             )}
           </div>
         </div>
@@ -496,7 +496,7 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
 
       {/* Root error */}
       {errors.root?.message && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-400" role="alert">
           {errors.root.message}
         </p>
       )}
@@ -504,12 +504,12 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
       {/* Footer actions */}
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end pt-1">
         {activeUploads > 0 && (
-          <p className="mr-auto text-xs text-slate-500 self-center">Upload in progress…</p>
+          <p className="mr-auto text-xs text-slate-500 self-center dark:text-slate-400">Upload in progress…</p>
         )}
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+          className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
         >
           Cancel
         </button>
@@ -517,7 +517,7 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
           type="button"
           onClick={createTestOnly}
           disabled={!isValid || activeUploads > 0}
-          className="rounded-xl border border-brand-300 bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-700 hover:bg-brand-100 transition-colors disabled:opacity-50"
+          className="rounded-xl border border-brand-300 bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-700 hover:bg-brand-100 transition-colors disabled:opacity-50 dark:border-brand-800 dark:bg-brand-950/30 dark:text-brand-400 dark:hover:bg-brand-950/50"
         >
           Create For This Test Only
         </button>
@@ -525,7 +525,7 @@ export function QuestionEditor({ testId, subjectId, onCancel, onCreated }: Quest
           type="button"
           onClick={createAndPublish}
           disabled={!isValid || activeUploads > 0}
-          className="rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 transition-colors disabled:opacity-50"
+          className="rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 transition-colors disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700"
         >
           Create &amp; Publish To Question Bank
         </button>

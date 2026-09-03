@@ -11,7 +11,7 @@ const stats = [
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-white py-16 sm:py-24 lg:py-36">
+    <section className="relative overflow-hidden bg-white py-16 sm:py-24 lg:py-36 dark:bg-slate-900">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
@@ -23,21 +23,21 @@ export function Hero() {
 
       <Container>
         <div className="mx-auto max-w-3xl text-center">
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-600" />
-            <span className="text-xs font-semibold uppercase tracking-wide sm:tracking-widest text-brand-700">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-1.5 dark:border-brand-800 dark:bg-brand-950/40">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-600 dark:bg-brand-400" />
+            <span className="text-xs font-semibold uppercase tracking-wide sm:tracking-widest text-brand-700 dark:text-brand-400">
               Trusted by 5,000+ JEE &amp; NEET Aspirants
             </span>
           </div>
 
-          <h1 className="text-3xl font-bold leading-[1.1] tracking-tight text-slate-900 sm:text-5xl lg:text-[4.5rem]">
+          <h1 className="text-3xl font-bold leading-[1.1] tracking-tight text-slate-900 sm:text-5xl lg:text-[4.5rem] dark:text-white">
             Chemistry Excellence.{' '}
-            <span className="text-brand-700">Structured Learning.</span>
+            <span className="text-brand-700 dark:text-brand-400">Structured Learning.</span>
             <br className="hidden sm:block" />
             {' '}Assessment-Driven Results.
           </h1>
 
-          <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-slate-600">
+          <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-300">
             Scientia builds your chemistry foundation chapter by chapter — with concept-first
             teaching, targeted practice, and assessment-driven feedback that actually improves
             your rank.
@@ -46,28 +46,28 @@ export function Hero() {
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
               to={ROUTES.SIGNUP}
-              className="inline-flex items-center gap-2 rounded-xl bg-brand-700 px-8 py-4 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-800"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-700 px-8 py-4 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-800 dark:bg-brand-600 dark:hover:bg-brand-700"
             >
               Get Started Free
               <ArrowRightIcon />
             </Link>
             <Link
               to={ROUTES.ABOUT}
-              className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-8 py-4 text-base font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+              className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-8 py-4 text-base font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               Learn More
             </Link>
           </div>
         </div>
 
-        <div className="mt-20 border-t border-slate-100 pt-12">
+        <div className="mt-20 border-t border-slate-100 pt-12 dark:border-slate-800">
           <dl className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             {stats.map((stat) => (
               <div key={stat.label} className="text-center">
-                <dt className="text-3xl font-bold tracking-tight text-slate-900 lg:text-4xl">
+                <dt className="text-3xl font-bold tracking-tight text-slate-900 lg:text-4xl dark:text-white">
                   {stat.value}
                 </dt>
-                <dd className="mt-1.5 text-sm font-medium text-slate-500">{stat.label}</dd>
+                <dd className="mt-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">{stat.label}</dd>
               </div>
             ))}
           </dl>

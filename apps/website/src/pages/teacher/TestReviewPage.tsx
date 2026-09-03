@@ -65,14 +65,14 @@ function QuestionCard({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden dark:border-slate-800 dark:bg-slate-800/60">
       {/* Card header */}
       <div className="flex items-center gap-3 px-5 py-4">
         <div className="flex shrink-0 flex-col gap-0.5">
           <button
             onClick={onMoveUp}
             disabled={index === 0}
-            className="flex h-6 w-6 items-center justify-center rounded text-slate-300 hover:text-slate-600 disabled:opacity-30"
+            className="flex h-6 w-6 items-center justify-center rounded text-slate-300 hover:text-slate-600 disabled:opacity-30 dark:text-slate-600 dark:hover:text-slate-300"
             title="Move up"
           >
             ▲
@@ -80,26 +80,26 @@ function QuestionCard({
           <button
             onClick={onMoveDown}
             disabled={index === totalCount - 1}
-            className="flex h-6 w-6 items-center justify-center rounded text-slate-300 hover:text-slate-600 disabled:opacity-30"
+            className="flex h-6 w-6 items-center justify-center rounded text-slate-300 hover:text-slate-600 disabled:opacity-30 dark:text-slate-600 dark:hover:text-slate-300"
             title="Move down"
           >
             ▼
           </button>
         </div>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 dark:bg-brand-950/40 dark:text-brand-400">
           {index + 1}
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-slate-800 truncate">
+          <p className="text-sm font-medium text-slate-800 truncate dark:text-slate-100">
             {question.questionText
               ? question.questionText
               : question.questionImageUrl
-                ? <em className="text-slate-400">Image-only question</em>
+                ? <em className="text-slate-400 dark:text-slate-500">Image-only question</em>
                 : question.latexContent
-                  ? <em className="text-slate-400">LaTeX-only question</em>
-                  : <em className="text-slate-400">Empty question</em>}
+                  ? <em className="text-slate-400 dark:text-slate-500">LaTeX-only question</em>
+                  : <em className="text-slate-400 dark:text-slate-500">Empty question</em>}
           </p>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5 dark:text-slate-500">
             {question.questionType.replace('_', ' ')}
             {question.questionImageUrl && ' · has image'}
             {question.latexContent && ' · has LaTeX'}
@@ -108,13 +108,13 @@ function QuestionCard({
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setExpanded((e) => !e)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             {expanded ? 'Collapse' : 'Edit'}
           </button>
           <button
             onClick={onDelete}
-            className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors"
+            className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/30"
           >
             Remove
           </button>
@@ -123,11 +123,11 @@ function QuestionCard({
 
       {/* Expanded editor */}
       {expanded && (
-        <div className="border-t border-slate-100 px-5 py-5 bg-slate-50">
+        <div className="border-t border-slate-100 px-5 py-5 bg-slate-50 dark:border-slate-700 dark:bg-slate-900/60">
           <div className="flex flex-col gap-4">
             {(question.questionImageUrl || question.latexContent) && (
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">
+                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide dark:text-slate-400">
                   Question Preview
                 </label>
                 <QuestionContent
@@ -138,22 +138,22 @@ function QuestionCard({
               </div>
             )}
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide dark:text-slate-400">
                 Question Text
               </label>
               <textarea
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
                 rows={3}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-700 focus:ring-offset-1 resize-none"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-700 focus:ring-offset-1 resize-none dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-brand-500 dark:focus:ring-offset-slate-900"
               />
             </div>
 
             {editOptions.length > 0 && (
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">
+                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide dark:text-slate-400">
                   Options{' '}
-                  <span className="normal-case font-normal text-slate-400">
+                  <span className="normal-case font-normal text-slate-400 dark:text-slate-500">
                     (click checkbox to mark correct)
                   </span>
                 </label>
@@ -165,8 +165,8 @@ function QuestionCard({
                         className={[
                           'flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors',
                           opt.isCorrect
-                            ? 'border-green-600 bg-green-600'
-                            : 'border-slate-300 bg-white',
+                            ? 'border-green-600 bg-green-600 dark:border-green-500 dark:bg-green-500'
+                            : 'border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-800',
                         ].join(' ')}
                         title="Toggle correct"
                       >
@@ -179,7 +179,7 @@ function QuestionCard({
                       <input
                         value={opt.optionText ?? ''}
                         onChange={(e) => setOptionText(opt.id, e.target.value)}
-                        className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-700 focus:ring-offset-1"
+                        className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-700 focus:ring-offset-1 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-brand-500 dark:focus:ring-offset-slate-900"
                       />
                     </div>
                   ))}
@@ -190,14 +190,14 @@ function QuestionCard({
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setExpanded(false)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800 disabled:opacity-50"
+                className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800 disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -223,14 +223,14 @@ function CreateQuestionModal({
   onCreated: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 dark:bg-black/60">
+      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-2xl bg-white shadow-2xl dark:bg-slate-800">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0">
-          <h3 className="text-base font-bold text-slate-900">New Question</h3>
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0 dark:border-slate-700">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">New Question</h3>
           <button
             onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center text-slate-400 hover:text-slate-700 text-xl leading-none"
+            className="flex h-7 w-7 items-center justify-center text-slate-400 hover:text-slate-700 text-xl leading-none dark:text-slate-500 dark:hover:text-slate-200"
           >
             ×
           </button>
@@ -281,50 +281,50 @@ function ReplacementModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl flex flex-col max-h-[80vh]">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h3 className="text-base font-bold text-slate-900">Add Replacement Question</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 dark:bg-black/60">
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl flex flex-col max-h-[80vh] dark:bg-slate-800">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-700">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">Add Replacement Question</h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 text-lg leading-none"
+            className="text-slate-400 hover:text-slate-700 text-lg leading-none dark:text-slate-500 dark:hover:text-slate-200"
           >
             ×
           </button>
         </div>
 
-        <div className="px-6 py-3 border-b border-slate-100">
+        <div className="px-6 py-3 border-b border-slate-100 dark:border-slate-700">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search questions..."
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-700"
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus:ring-brand-500"
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
+        <div className="flex-1 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-700">
           {isLoading && (
-            <p className="px-6 py-8 text-sm text-slate-400 text-center">Loading questions...</p>
+            <p className="px-6 py-8 text-sm text-slate-400 text-center dark:text-slate-500">Loading questions...</p>
           )}
           {!isLoading && filtered.length === 0 && (
-            <p className="px-6 py-8 text-sm text-slate-400 text-center">
+            <p className="px-6 py-8 text-sm text-slate-400 text-center dark:text-slate-500">
               No available questions found.
             </p>
           )}
           {filtered.map((q: ReplacementPoolQuestion) => (
             <div key={q.id} className="flex items-start gap-4 px-6 py-4">
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-800 leading-relaxed">
-                  {q.questionText ?? <em className="text-slate-400">Image-only question</em>}
+                <p className="text-sm text-slate-800 leading-relaxed dark:text-slate-100">
+                  {q.questionText ?? <em className="text-slate-400 dark:text-slate-500">Image-only question</em>}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-400 mt-1 dark:text-slate-500">
                   {q.type.replace('_', ' ')} &middot; used {q.appearanceCount}×
                 </p>
               </div>
               <button
                 onClick={() => addMutation.mutate(q.id)}
                 disabled={addMutation.isPending}
-                className="shrink-0 rounded-lg bg-brand-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-800 disabled:opacity-50"
+                className="shrink-0 rounded-lg bg-brand-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-800 disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700"
               >
                 Add
               </button>
@@ -394,7 +394,7 @@ export function TestReviewPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-400 text-sm">
+      <div className="flex items-center justify-center py-20 text-slate-400 text-sm dark:text-slate-500">
         Loading test...
       </div>
     );
@@ -402,7 +402,7 @@ export function TestReviewPage() {
 
   if (error || !test) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
         Test not found or failed to load.
       </div>
     );
@@ -417,27 +417,27 @@ export function TestReviewPage() {
         <div>
           <Link
             to={ROUTES.TEACHER_TEST(testId!)}
-            className="text-sm text-slate-500 hover:text-slate-800"
+            className="text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
           >
             ← {test.name}
           </Link>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             Review Questions
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {sortedQuestions.length} questions &middot; edits only affect this test, not the question bank.
           </p>
         </div>
         <div className="flex gap-2 shrink-0 flex-wrap">
           <button
             onClick={() => setShowCreate(true)}
-            className="rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800 transition-colors"
+            className="rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800 transition-colors dark:bg-brand-600 dark:hover:bg-brand-700"
           >
             + Create Question
           </button>
           <button
             onClick={() => setShowReplacement(true)}
-            className="rounded-xl border border-brand-300 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-100 transition-colors"
+            className="rounded-xl border border-brand-300 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-100 transition-colors dark:border-brand-800 dark:bg-brand-950/30 dark:text-brand-400 dark:hover:bg-brand-950/50"
           >
             + Add from Bank
           </button>

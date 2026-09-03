@@ -73,13 +73,13 @@ export function AboutPage() {
   return (
     <>
       {/* Page hero */}
-      <section className="bg-slate-50 py-12 sm:py-20 lg:py-28">
+      <section className="bg-slate-50 py-12 sm:py-20 lg:py-28 dark:bg-slate-800/40">
         <Container narrow>
           <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-white">
               About Scientia
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-300">
               We believe every student deserves access to structured, high-quality chemistry
               education — regardless of where they live or what school they attend.
             </p>
@@ -92,15 +92,15 @@ export function AboutPage() {
         <Container narrow>
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 lg:text-3xl">
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 lg:text-3xl dark:text-white">
                 Our Mission
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-slate-600">
+              <p className="mt-4 text-base leading-relaxed text-slate-600 dark:text-slate-300">
                 Chemistry is the foundation of JEE and NEET success — yet most students approach
                 it without structure. They jump between topics, solve random questions, and wonder
                 why their scores don't improve.
               </p>
-              <p className="mt-4 text-base leading-relaxed text-slate-600">
+              <p className="mt-4 text-base leading-relaxed text-slate-600 dark:text-slate-300">
                 Scientia changes that. We've built a systematic, assessment-first approach that
                 takes you from NCERT basics to advanced problem-solving with clarity and
                 confidence. No guesswork. No scattered prep. Just a structured path that works.
@@ -115,10 +115,10 @@ export function AboutPage() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-5 py-4"
+                  className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-5 py-4 dark:border-slate-700 dark:bg-slate-800/60"
                 >
-                  <span className="text-sm font-medium text-slate-600">{item.label}</span>
-                  <span className="text-lg font-bold text-slate-900">{item.value}</span>
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{item.label}</span>
+                  <span className="text-lg font-bold text-slate-900 dark:text-white">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -130,21 +130,21 @@ export function AboutPage() {
       <Section muted>
         <Container>
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900 lg:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900 lg:text-4xl dark:text-white">
               What we stand for
             </h2>
-            <p className="mt-4 text-lg leading-relaxed text-slate-600">
+            <p className="mt-4 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
               Three principles that guide every decision we make.
             </p>
           </div>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {values.map((v) => (
               <Card key={v.title} hover className="flex flex-col">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-400">
                   {v.icon}
                 </div>
-                <h3 className="mt-5 text-base font-semibold text-slate-900">{v.title}</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+                <h3 className="mt-5 text-base font-semibold text-slate-900 dark:text-white">{v.title}</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                   {v.description}
                 </p>
               </Card>

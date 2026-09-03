@@ -20,5 +20,14 @@
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    @apply bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100;
   }
+}
+
+/* KaTeX renders its own markup via dangerouslySetInnerHTML with a hardcoded
+   black text color from its stylesheet — Tailwind's dark: variant can't
+   reach into that, so it's overridden directly here or math becomes
+   invisible on dark surfaces. */
+.dark .katex {
+  color: theme('colors.slate.100');
 }

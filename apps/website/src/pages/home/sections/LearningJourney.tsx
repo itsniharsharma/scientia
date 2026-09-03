@@ -40,10 +40,10 @@ export function LearningJourney() {
     <Section>
       <Container>
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 lg:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900 lg:text-4xl dark:text-white">
             Your learning journey, structured
           </h2>
-          <p className="mt-4 text-lg leading-relaxed text-slate-600">
+          <p className="mt-4 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
             Every student follows the same proven path — from foundation to full mastery.
           </p>
         </div>
@@ -57,19 +57,19 @@ export function LearningJourney() {
                   className={[
                     'flex h-14 w-14 items-center justify-center rounded-full text-sm font-bold',
                     i === 0
-                      ? 'bg-brand-700 text-white'
-                      : 'border-2 border-slate-200 bg-white text-slate-500',
+                      ? 'bg-brand-700 text-white dark:bg-brand-600'
+                      : 'border-2 border-slate-200 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400',
                   ].join(' ')}
                 >
                   {step.number}
                 </div>
-                <h3 className="mt-4 text-sm font-semibold text-slate-900">{step.title}</h3>
-                <p className="mt-1.5 max-w-[120px] text-xs leading-relaxed text-slate-500">
+                <h3 className="mt-4 text-sm font-semibold text-slate-900 dark:text-white">{step.title}</h3>
+                <p className="mt-1.5 max-w-[120px] text-xs leading-relaxed text-slate-500 dark:text-slate-400">
                   {step.description}
                 </p>
               </div>
               {i < steps.length - 1 && (
-                <div className="mt-7 h-px flex-none w-8 bg-slate-200" />
+                <div className="mt-7 h-px flex-none w-8 bg-slate-200 dark:bg-slate-700" />
               )}
             </Fragment>
           ))}
@@ -79,12 +79,12 @@ export function LearningJourney() {
         <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:hidden">
           {steps.map((step) => (
             <div key={step.number} className="flex items-start gap-4">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 border-brand-200 bg-brand-50 text-sm font-bold text-brand-700">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 border-brand-200 bg-brand-50 text-sm font-bold text-brand-700 dark:border-brand-800 dark:bg-brand-950/40 dark:text-brand-400">
                 {step.number}
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-slate-900">{step.title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{step.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                   {step.description}
                 </p>
               </div>

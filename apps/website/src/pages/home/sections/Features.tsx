@@ -128,10 +128,10 @@ export function Features() {
     <Section muted>
       <Container>
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 lg:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900 lg:text-4xl dark:text-white">
             Everything you need to crack the exam
           </h2>
-          <p className="mt-4 text-lg leading-relaxed text-slate-600">
+          <p className="mt-4 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
             No gimmicks. No filler content. Every feature is designed around one goal: helping
             you score higher.
           </p>
@@ -140,12 +140,12 @@ export function Features() {
         <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
             <div key={feature.title} className="flex gap-4">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-400">
                 {feature.icon}
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-900">{feature.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+                <h3 className="text-base font-semibold text-slate-900 dark:text-white">{feature.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                   {feature.description}
                 </p>
               </div>

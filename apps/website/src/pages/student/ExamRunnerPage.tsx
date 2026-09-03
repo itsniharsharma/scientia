@@ -71,9 +71,9 @@ function paletteClass(state: QuestionState, active: boolean): string {
     case 'MARKED':
       return `${base} bg-orange-400 text-white border-orange-400`;
     case 'VISITED':
-      return `${base} bg-blue-100 text-blue-700 border-blue-200`;
+      return `${base} bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900`;
     default:
-      return `${base} bg-slate-100 text-slate-500 border-slate-200`;
+      return `${base} bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700`;
   }
 }
 
@@ -123,7 +123,7 @@ function QuestionPanel({
           latexContent={question.latexContent}
         />
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">
+          <label className="block text-sm font-medium text-slate-600 mb-2 dark:text-slate-300">
             Enter your answer (integer):
           </label>
           <input
@@ -138,7 +138,7 @@ function QuestionPanel({
                 if (!isNaN(parsed)) onChange({ type: 'integer', value: parsed });
               }
             }}
-            className="w-40 rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-brand-700 focus:ring-offset-1"
+            className="w-40 rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-brand-700 focus:ring-offset-1 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-brand-500 dark:focus:ring-offset-slate-800"
             placeholder="e.g. 42"
           />
         </div>
@@ -174,7 +174,7 @@ function QuestionPanel({
         latexContent={question.latexContent}
       />
       {question.questionType === 'MULTI_CHOICE' && (
-        <p className="text-xs text-slate-400">Select all that apply</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500">Select all that apply</p>
       )}
       <div className="space-y-2.5">
         {(question.optionsJson as TestOptionSnapshot[])
@@ -188,8 +188,8 @@ function QuestionPanel({
                 className={[
                   'w-full rounded-xl border px-4 py-3 text-left text-sm transition-colors',
                   selected
-                    ? 'border-brand-400 bg-brand-50 text-brand-800'
-                    : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:bg-brand-50/50',
+                    ? 'border-brand-400 bg-brand-50 text-brand-800 dark:border-brand-600 dark:bg-brand-950/30 dark:text-brand-300'
+                    : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:bg-brand-50/50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-brand-700 dark:hover:bg-brand-950/20',
                 ].join(' ')}
               >
                 <div className="flex gap-2">
@@ -232,22 +232,22 @@ function SubmitModal({
   const notAttempted = questions.length - attempted;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl mx-4">
-        <h2 className="text-lg font-bold text-slate-900 mb-2">Submit Exam?</h2>
-        <p className="text-sm text-slate-500 mb-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl mx-4 dark:bg-slate-800">
+        <h2 className="text-lg font-bold text-slate-900 mb-2 dark:text-white">Submit Exam?</h2>
+        <p className="text-sm text-slate-500 mb-6 dark:text-slate-400">
           Once submitted, you cannot make changes.
         </p>
 
         <div className="space-y-3 mb-6">
-          <SumRow label="Attempted" value={attempted} color="text-green-700" />
-          <SumRow label="Not Attempted" value={notAttempted} color="text-red-600" />
-          <SumRow label="Marked for Review" value={marked} color="text-orange-500" />
-          <SumRow label="Total Questions" value={questions.length} color="text-slate-700" />
+          <SumRow label="Attempted" value={attempted} color="text-green-700 dark:text-green-400" />
+          <SumRow label="Not Attempted" value={notAttempted} color="text-red-600 dark:text-red-400" />
+          <SumRow label="Marked for Review" value={marked} color="text-orange-500 dark:text-orange-400" />
+          <SumRow label="Total Questions" value={questions.length} color="text-slate-700 dark:text-slate-200" />
         </div>
 
         {notAttempted > 0 && (
-          <div className="mb-5 rounded-xl bg-yellow-50 border border-yellow-200 px-4 py-3 text-xs text-yellow-700">
+          <div className="mb-5 rounded-xl bg-yellow-50 border border-yellow-200 px-4 py-3 text-xs text-yellow-700 dark:bg-yellow-950/30 dark:border-yellow-900 dark:text-yellow-400">
             You have {notAttempted} unattempted question{notAttempted > 1 ? 's' : ''}. Unattempted questions score 0.
           </div>
         )}
@@ -256,14 +256,14 @@ function SubmitModal({
           <button
             onClick={onCancel}
             disabled={submitting}
-            className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700"
           >
             Review Again
           </button>
           <button
             onClick={onConfirm}
             disabled={submitting}
-            className="flex-1 rounded-xl bg-brand-700 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 transition-colors disabled:opacity-60"
+            className="flex-1 rounded-xl bg-brand-700 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 transition-colors disabled:opacity-60 dark:bg-brand-600 dark:hover:bg-brand-700"
           >
             {submitting ? 'Submitting...' : 'Confirm Submit'}
           </button>
@@ -275,8 +275,8 @@ function SubmitModal({
 
 function SumRow({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="flex justify-between items-center py-2 border-b border-slate-50">
-      <span className="text-sm text-slate-600">{label}</span>
+    <div className="flex justify-between items-center py-2 border-b border-slate-50 dark:border-slate-700">
+      <span className="text-sm text-slate-600 dark:text-slate-300">{label}</span>
       <span className={`text-sm font-bold ${color}`}>{value}</span>
     </div>
   );
@@ -510,7 +510,7 @@ export function ExamRunnerPage() {
   // ─── Loading / error states ──────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white text-slate-400 text-sm">
+      <div className="fixed inset-0 flex items-center justify-center bg-white text-slate-400 text-sm dark:bg-slate-900 dark:text-slate-500">
         Loading exam...
       </div>
     );
@@ -518,8 +518,8 @@ export function ExamRunnerPage() {
 
   if (loadError || !attempt) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white">
-        <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-700 max-w-sm text-center">
+      <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-slate-900">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-700 max-w-sm text-center dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
           {loadError ?? 'Exam not found.'}
         </div>
       </div>
@@ -543,20 +543,20 @@ export function ExamRunnerPage() {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-slate-50 overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-slate-50 overflow-hidden dark:bg-slate-950">
       {/* ── Top bar ── */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm">
-        <h1 className="text-sm font-semibold text-slate-800 truncate max-w-xs">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h1 className="text-sm font-semibold text-slate-800 truncate max-w-xs dark:text-slate-100">
           {attempt.test.name}
         </h1>
         <div
           className={[
             'flex items-center gap-2 rounded-xl px-4 py-1.5 text-sm font-bold tabular-nums',
             timerCritical
-              ? 'bg-red-100 text-red-700'
+              ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400'
               : timerWarning
-                ? 'bg-yellow-50 text-yellow-700'
-                : 'bg-slate-100 text-slate-700',
+                ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400'
+                : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
           ].join(' ')}
         >
           <svg
@@ -579,19 +579,19 @@ export function ExamRunnerPage() {
         <div className="flex flex-1 flex-col overflow-y-auto p-6">
           {/* Question header */}
           <div className="mb-5 flex items-center gap-3">
-            <span className="rounded-full bg-brand-700 px-3 py-0.5 text-xs font-bold text-white">
+            <span className="rounded-full bg-brand-700 px-3 py-0.5 text-xs font-bold text-white dark:bg-brand-600">
               Q{currentIndex + 1}
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-slate-400 dark:text-slate-500">
               {currentIndex + 1} / {questions.length}
             </span>
-            <span className="ml-auto text-xs text-slate-400 capitalize">
+            <span className="ml-auto text-xs text-slate-400 capitalize dark:text-slate-500">
               {currentQ.questionType.toLowerCase().replace('_', ' ')}
             </span>
           </div>
 
           {/* Question content */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex-1">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex-1 dark:border-slate-800 dark:bg-slate-800/60">
             <QuestionPanel
               question={currentQ}
               answer={currentAnswer}
@@ -606,8 +606,8 @@ export function ExamRunnerPage() {
               className={[
                 'rounded-xl border px-4 py-2 text-xs font-semibold transition-colors',
                 isMarked
-                  ? 'border-orange-300 bg-orange-50 text-orange-700'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-orange-200 hover:bg-orange-50',
+                  ? 'border-orange-300 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-400'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-orange-200 hover:bg-orange-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-orange-800 dark:hover:bg-orange-950/20',
               ].join(' ')}
             >
               {isMarked ? '★ Marked' : '☆ Mark for Review'}
@@ -617,21 +617,21 @@ export function ExamRunnerPage() {
               <button
                 onClick={() => goTo(currentIndex - 1)}
                 disabled={currentIndex === 0}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               >
                 ← Previous
               </button>
               {currentIndex < questions.length - 1 ? (
                 <button
                   onClick={() => goTo(currentIndex + 1)}
-                  className="rounded-xl bg-brand-700 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-800 transition-colors"
+                  className="rounded-xl bg-brand-700 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-800 transition-colors dark:bg-brand-600 dark:hover:bg-brand-700"
                 >
                   Save & Next →
                 </button>
               ) : (
                 <button
                   onClick={() => setShowSubmit(true)}
-                  className="rounded-xl bg-green-600 px-4 py-2 text-xs font-semibold text-white hover:bg-green-700 transition-colors"
+                  className="rounded-xl bg-green-600 px-4 py-2 text-xs font-semibold text-white hover:bg-green-700 transition-colors dark:bg-green-700 dark:hover:bg-green-600"
                 >
                   Submit Exam
                 </button>
@@ -641,15 +641,15 @@ export function ExamRunnerPage() {
         </div>
 
         {/* ── Question palette (sidebar) ── */}
-        <aside className="hidden md:flex w-64 shrink-0 flex-col border-l border-slate-200 bg-white p-4 overflow-y-auto">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <aside className="hidden md:flex w-64 shrink-0 flex-col border-l border-slate-200 bg-white p-4 overflow-y-auto dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
             Question Palette
           </h2>
 
           {/* Legend */}
           <div className="mb-4 grid grid-cols-2 gap-1.5">
-            <LegendItem color="bg-slate-100 border-slate-200" label="Not Visited" />
-            <LegendItem color="bg-blue-100 border-blue-200" label="Visited" />
+            <LegendItem color="bg-slate-100 border-slate-200 dark:bg-slate-800 dark:border-slate-700" label="Not Visited" />
+            <LegendItem color="bg-blue-100 border-blue-200 dark:bg-blue-950/40 dark:border-blue-900" label="Visited" />
             <LegendItem color="bg-green-500 border-green-500" label="Answered" />
             <LegendItem color="bg-orange-400 border-orange-400" label="Marked" />
           </div>
@@ -666,10 +666,10 @@ export function ExamRunnerPage() {
             ))}
           </div>
 
-          <div className="mt-auto pt-4 border-t border-slate-100">
+          <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
               onClick={() => setShowSubmit(true)}
-              className="w-full rounded-xl bg-green-600 py-2.5 text-xs font-semibold text-white hover:bg-green-700 transition-colors"
+              className="w-full rounded-xl bg-green-600 py-2.5 text-xs font-semibold text-white hover:bg-green-700 transition-colors dark:bg-green-700 dark:hover:bg-green-600"
             >
               Submit Exam
             </button>
@@ -696,7 +696,7 @@ function LegendItem({ color, label }: { color: string; label: string }) {
   return (
     <div className="flex items-center gap-1.5">
       <div className={`w-3.5 h-3.5 rounded border ${color} shrink-0`} />
-      <span className="text-[10px] text-slate-500">{label}</span>
+      <span className="text-[10px] text-slate-500 dark:text-slate-400">{label}</span>
     </div>
   );
 }

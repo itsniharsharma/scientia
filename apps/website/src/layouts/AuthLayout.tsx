@@ -1,12 +1,16 @@
 import { Outlet, Link } from 'react-router-dom';
+import { ThemeToggleButton } from '../components/ThemeToggleButton';
 import { ROUTES } from '../routes';
 
 export function AuthLayout() {
   return (
-    <div className="flex min-h-full flex-col items-center justify-center bg-slate-50 px-4 py-10 sm:py-16">
+    <div className="relative flex min-h-full flex-col items-center justify-center bg-slate-50 px-4 py-10 sm:py-16 dark:bg-slate-950">
+      <div className="absolute right-4 top-4">
+        <ThemeToggleButton />
+      </div>
       <Link
         to={ROUTES.HOME}
-        className="mb-10 flex items-center gap-2.5 text-xl font-bold text-brand-700"
+        className="mb-10 flex items-center gap-2.5 text-xl font-bold text-brand-700 dark:text-brand-400"
       >
         <HexIcon />
         Scientia

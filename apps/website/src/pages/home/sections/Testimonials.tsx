@@ -31,10 +31,10 @@ export function Testimonials() {
     <Section>
       <Container>
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 lg:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900 lg:text-4xl dark:text-white">
             Students who trusted the process
           </h2>
-          <p className="mt-4 text-lg leading-relaxed text-slate-600">
+          <p className="mt-4 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
             Results speak. Here's what students achieved with Scientia's structured program.
           </p>
         </div>
@@ -48,22 +48,22 @@ export function Testimonials() {
                   height="24"
                   viewBox="0 0 32 24"
                   fill="none"
-                  className="text-brand-200"
+                  className="text-brand-200 dark:text-brand-800"
                 >
                   <path
                     d="M0 24V14.4C0 6.4 4.8 1.6 14.4 0l1.6 3.2C10.4 4.8 7.6 7.2 7.2 11.2H14.4V24H0zm17.6 0V14.4C17.6 6.4 22.4 1.6 32 0l1.6 3.2C28 4.8 25.2 7.2 24.8 11.2H32V24H17.6z"
                     fill="currentColor"
                   />
                 </svg>
-                <p className="mt-4 text-sm leading-relaxed text-slate-700">{t.quote}</p>
+                <p className="mt-4 text-sm leading-relaxed text-slate-700 dark:text-slate-300">{t.quote}</p>
               </div>
               <div className="mt-6 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white dark:bg-brand-600">
                   {t.initials}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{t.name}</p>
-                  <p className="text-xs text-slate-500">{t.detail}</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{t.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{t.detail}</p>
                 </div>
               </div>
             </Card>

@@ -10,7 +10,7 @@ export function Section({ children, muted, className = '', ...props }: SectionPr
     <section
       className={[
         'py-16 md:py-24 lg:py-32',
-        muted ? 'bg-slate-50' : 'bg-white',
+        muted ? 'bg-slate-50 dark:bg-slate-800/40' : 'bg-white dark:bg-slate-900',
         className,
       ].join(' ')}
       {...props}

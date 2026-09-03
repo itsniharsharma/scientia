@@ -27,14 +27,14 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide dark:text-slate-400">
           Step {current} of {total}
         </span>
-        <span className="text-xs text-slate-400">{STEPS[current - 1]}</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500">{STEPS[current - 1]}</span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-slate-100">
+      <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-700">
         <div
-          className="h-1.5 rounded-full bg-brand-700 transition-all duration-300"
+          className="h-1.5 rounded-full bg-brand-700 transition-all duration-300 dark:bg-brand-500"
           style={{ width: `${(current / total) * 100}%` }}
         />
       </div>
@@ -66,15 +66,15 @@ function StepCard({
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">{title}</h2>
+        {subtitle && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>}
       </div>
       <div className="mb-8">{children}</div>
       <div className="flex items-center justify-between">
         {onBack ? (
           <button
             onClick={onBack}
-            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             ← Back
           </button>
@@ -84,7 +84,7 @@ function StepCard({
         <button
           onClick={onNext}
           disabled={nextDisabled || loading}
-          className="rounded-xl bg-brand-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="rounded-xl bg-brand-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors dark:bg-brand-600 dark:hover:bg-brand-700"
         >
           {loading ? 'Generating...' : nextLabel}
         </button>
@@ -186,27 +186,27 @@ export function TestCreatePage() {
   const backLabel = batchId ? '← Back to Batch' : '← Back to All Tests';
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-700 focus:ring-offset-1 placeholder:text-slate-400';
+    'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-700 focus:ring-offset-1 placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus:ring-brand-500 dark:focus:ring-offset-slate-800';
 
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
         <button
           onClick={() => navigate(backTarget)}
-          className="text-sm text-slate-500 hover:text-slate-800"
+          className="text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
         >
           {backLabel}
         </button>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
           Generate New Test
         </h1>
       </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
+      <div className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-800/60">
         <StepIndicator current={step} total={8} />
 
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
             {error}
           </div>
         )}
@@ -237,7 +237,7 @@ export function TestCreatePage() {
             onNext={next}
             nextDisabled={!selectedSubject}
           >
-            {subjectsLoading && <p className="text-sm text-slate-400">Loading subjects...</p>}
+            {subjectsLoading && <p className="text-sm text-slate-400 dark:text-slate-500">Loading subjects...</p>}
             <div className="flex flex-col gap-2">
               {(subjects ?? []).map((s) => (
                 <button
@@ -250,13 +250,13 @@ export function TestCreatePage() {
                   className={[
                     'flex items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors',
                     selectedSubject?.id === s.id
-                      ? 'border-brand-400 bg-brand-50 text-brand-700'
-                      : 'border-slate-200 text-slate-700 hover:border-brand-300 hover:bg-slate-50',
+                      ? 'border-brand-400 bg-brand-50 text-brand-700 dark:border-brand-600 dark:bg-brand-950/30 dark:text-brand-400'
+                      : 'border-slate-200 text-slate-700 hover:border-brand-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:border-brand-700 dark:hover:bg-slate-800',
                   ].join(' ')}
                 >
                   {s.name}
                   {selectedSubject?.id === s.id && (
-                    <svg className="h-4 w-4 text-brand-700" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-4 w-4 text-brand-700 dark:text-brand-400" viewBox="0 0 20 20" fill="currentColor">
                       <path
                         fillRule="evenodd"
                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -279,7 +279,7 @@ export function TestCreatePage() {
             onNext={next}
             nextDisabled={selectedChapterIds.length === 0}
           >
-            {chaptersLoading && <p className="text-sm text-slate-400">Loading chapters...</p>}
+            {chaptersLoading && <p className="text-sm text-slate-400 dark:text-slate-500">Loading chapters...</p>}
             <div className="flex flex-col gap-2">
               {(chapters ?? []).map((c: ChapterOption) => (
                 <label
@@ -287,8 +287,8 @@ export function TestCreatePage() {
                   className={[
                     'flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-colors',
                     selectedChapterIds.includes(c.id)
-                      ? 'border-brand-400 bg-brand-50 text-brand-700'
-                      : 'border-slate-200 text-slate-700 hover:border-brand-300 hover:bg-slate-50',
+                      ? 'border-brand-400 bg-brand-50 text-brand-700 dark:border-brand-600 dark:bg-brand-950/30 dark:text-brand-400'
+                      : 'border-slate-200 text-slate-700 hover:border-brand-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:border-brand-700 dark:hover:bg-slate-800',
                   ].join(' ')}
                 >
                   <input
@@ -306,8 +306,8 @@ export function TestCreatePage() {
                     className={[
                       'flex h-4 w-4 shrink-0 items-center justify-center rounded border',
                       selectedChapterIds.includes(c.id)
-                        ? 'border-brand-700 bg-brand-700'
-                        : 'border-slate-300',
+                        ? 'border-brand-700 bg-brand-700 dark:border-brand-500 dark:bg-brand-500'
+                        : 'border-slate-300 dark:border-slate-600',
                     ].join(' ')}
                   >
                     {selectedChapterIds.includes(c.id) && (
@@ -333,7 +333,7 @@ export function TestCreatePage() {
             nextDisabled={selectedTopicIds.length === 0}
           >
             {chapterTopicQueries.isLoading && (
-              <p className="text-sm text-slate-400">Loading topics...</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500">Loading topics...</p>
             )}
             <div className="flex flex-col gap-2">
               {topics.map((t: TopicOption) => (
@@ -342,8 +342,8 @@ export function TestCreatePage() {
                   className={[
                     'flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-colors',
                     selectedTopicIds.includes(t.id)
-                      ? 'border-brand-400 bg-brand-50 text-brand-700'
-                      : 'border-slate-200 text-slate-700 hover:border-brand-300 hover:bg-slate-50',
+                      ? 'border-brand-400 bg-brand-50 text-brand-700 dark:border-brand-600 dark:bg-brand-950/30 dark:text-brand-400'
+                      : 'border-slate-200 text-slate-700 hover:border-brand-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:border-brand-700 dark:hover:bg-slate-800',
                   ].join(' ')}
                 >
                   <input
@@ -356,8 +356,8 @@ export function TestCreatePage() {
                     className={[
                       'flex h-4 w-4 shrink-0 items-center justify-center rounded border',
                       selectedTopicIds.includes(t.id)
-                        ? 'border-brand-700 bg-brand-700'
-                        : 'border-slate-300',
+                        ? 'border-brand-700 bg-brand-700 dark:border-brand-500 dark:bg-brand-500'
+                        : 'border-slate-300 dark:border-slate-600',
                     ].join(' ')}
                   >
                     {selectedTopicIds.includes(t.id) && (
@@ -390,7 +390,7 @@ export function TestCreatePage() {
               onChange={(e) => setQuestionCount(Math.max(1, parseInt(e.target.value) || 1))}
               className={inputClass}
             />
-            <p className="mt-2 text-xs text-slate-400">
+            <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
               The algorithm will select the best-scored questions from your chosen topics.
             </p>
           </StepCard>
@@ -416,7 +416,7 @@ export function TestCreatePage() {
                 }
                 className={`${inputClass} max-w-[120px]`}
               />
-              <span className="text-sm text-slate-500">minutes</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">minutes</span>
             </div>
             <div className="mt-3 flex gap-2">
               {[30, 45, 60, 90, 120].map((m) => (
@@ -426,8 +426,8 @@ export function TestCreatePage() {
                   className={[
                     'rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors',
                     durationMinutes === m
-                      ? 'border-brand-400 bg-brand-50 text-brand-700'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50',
+                      ? 'border-brand-400 bg-brand-50 text-brand-700 dark:border-brand-600 dark:bg-brand-950/30 dark:text-brand-400'
+                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800',
                   ].join(' ')}
                 >
                   {m} min
@@ -465,7 +465,7 @@ export function TestCreatePage() {
             nextLabel="Generate Test"
             loading={generateMutation.isPending}
           >
-            <div className="rounded-xl border border-slate-100 bg-slate-50 divide-y divide-slate-100">
+            <div className="rounded-xl border border-slate-100 bg-slate-50 divide-y divide-slate-100 dark:border-slate-700 dark:bg-slate-900/60 dark:divide-slate-700">
               {[
                 ['Test Name', testName],
                 ['Subject', selectedSubject?.name ?? ''],
@@ -484,8 +484,8 @@ export function TestCreatePage() {
                 ],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-center justify-between px-4 py-3">
-                  <span className="text-sm text-slate-500">{label}</span>
-                  <span className="text-sm font-semibold text-slate-900">{value}</span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
+                  <span className="text-sm font-semibold text-slate-900 dark:text-white">{value}</span>
                 </div>
               ))}
             </div>

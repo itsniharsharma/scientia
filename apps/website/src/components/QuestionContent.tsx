@@ -19,7 +19,7 @@ export function QuestionContent({
   return (
     <div className={['space-y-3', className].join(' ').trim()}>
       {questionText && (
-        <p className="text-base text-slate-800 leading-relaxed">{questionText}</p>
+        <p className="text-base text-slate-800 leading-relaxed dark:text-slate-100">{questionText}</p>
       )}
       <QuestionImage
         url={questionImageUrl}

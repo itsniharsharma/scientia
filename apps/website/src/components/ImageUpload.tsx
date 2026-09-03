@@ -49,14 +49,14 @@ function ImageUpload({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</span>
 
       {value && !uploading && (
         <div className="relative w-fit">
           <img
             src={value}
             alt={label}
-            className="h-24 w-auto rounded-md border border-slate-200 bg-slate-50 object-contain"
+            className="h-24 w-auto rounded-md border border-slate-200 bg-slate-50 object-contain dark:border-slate-700"
           />
           <button
             type="button"
@@ -79,9 +79,9 @@ function ImageUpload({
       )}
 
       {uploading ? (
-        <div className="flex w-fit items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
+        <div className="flex w-fit items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
           <svg
-            className="h-4 w-4 animate-spin text-brand-700"
+            className="h-4 w-4 animate-spin text-brand-700 dark:text-brand-400"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -108,8 +108,8 @@ function ImageUpload({
               'flex w-fit items-center gap-2 rounded-md border px-3 py-2 text-sm',
               'transition-colors focus:outline-none focus:ring-2 focus:ring-brand-700 focus:ring-offset-1',
               value
-                ? 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50'
-                : 'border-dashed border-slate-300 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700',
+                ? 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                : 'border-dashed border-slate-300 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:text-slate-200',
             ].join(' ')}
           >
             <svg
@@ -132,13 +132,13 @@ function ImageUpload({
       )}
 
       {error && !uploadError && (
-        <p className="text-xs text-red-600" role="alert">
+        <p className="text-xs text-red-600 dark:text-red-400" role="alert">
           {error}
         </p>
       )}
 
       {uploadError && (
-        <p className="text-xs text-red-600" role="alert">
+        <p className="text-xs text-red-600 dark:text-red-400" role="alert">
           {uploadError}
         </p>
       )}

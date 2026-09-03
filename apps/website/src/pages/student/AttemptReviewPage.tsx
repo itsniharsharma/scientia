@@ -11,20 +11,20 @@ import { OptionContent } from '../../components/OptionContent';
 function StatusBadge({ status }: { status: 'correct' | 'wrong' | 'skipped' }) {
   if (status === 'correct') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700">
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-950/40 dark:text-green-400">
         ✓ Correct
       </span>
     );
   }
   if (status === 'wrong') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-600">
+      <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-600 dark:bg-red-950/40 dark:text-red-400">
         ✗ Wrong
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
+    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
       ○ Skipped
     </span>
   );
@@ -40,16 +40,16 @@ function OptionRow({ opt, index }: { opt: ReviewOption; index: number }) {
   let icon: string | null = null;
 
   if (opt.wasSelected && opt.isCorrect) {
-    classes += ' border-green-300 bg-green-50 text-green-800';
+    classes += ' border-green-300 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950/30 dark:text-green-300';
     icon = '✓';
   } else if (opt.wasSelected && !opt.isCorrect) {
-    classes += ' border-red-300 bg-red-50 text-red-700';
+    classes += ' border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300';
     icon = '✗';
   } else if (!opt.wasSelected && opt.isCorrect) {
-    classes += ' border-green-200 bg-green-50/60 text-green-800';
+    classes += ' border-green-200 bg-green-50/60 text-green-800 dark:border-green-900 dark:bg-green-950/20 dark:text-green-400';
     icon = '✓';
   } else {
-    classes += ' border-slate-200 bg-white text-slate-600';
+    classes += ' border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300';
   }
 
   return (
@@ -143,8 +143,8 @@ function FooterItem({
 }) {
   return (
     <div>
-      <p className="text-xs font-medium text-slate-400 mb-1">{label}</p>
-      <p className={`text-sm font-semibold ${muted ? 'text-slate-400 italic' : 'text-slate-800'}`}>
+      <p className="text-xs font-medium text-slate-400 mb-1 dark:text-slate-500">{label}</p>
+      <p className={`text-sm font-semibold ${muted ? 'text-slate-400 italic dark:text-slate-500' : 'text-slate-800 dark:text-slate-100'}`}>
         {value}
       </p>
     </div>
@@ -157,21 +157,21 @@ function QuestionCard({ question, number }: { question: ReviewQuestion; number: 
   return (
     <div
       className={[
-        'rounded-2xl border bg-white p-6 shadow-sm',
+        'rounded-2xl border bg-white p-6 shadow-sm dark:bg-slate-800/60',
         question.status === 'correct'
-          ? 'border-green-100'
+          ? 'border-green-100 dark:border-green-900'
           : question.status === 'wrong'
-            ? 'border-red-100'
-            : 'border-slate-100',
+            ? 'border-red-100 dark:border-red-900'
+            : 'border-slate-100 dark:border-slate-800',
       ].join(' ')}
     >
       {/* Card header */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-700 text-xs font-bold text-white shrink-0">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-700 text-xs font-bold text-white shrink-0 dark:bg-brand-600">
             {number}
           </span>
-          <span className="text-xs text-slate-400 capitalize">
+          <span className="text-xs text-slate-400 capitalize dark:text-slate-500">
             {question.questionType.toLowerCase().replace('_', ' ')}
           </span>
         </div>
@@ -198,24 +198,24 @@ function QuestionCard({ question, number }: { question: ReviewQuestion; number: 
       {/* Integer input display */}
       {question.questionType === 'INTEGER' && (
         <div className="flex gap-4">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3">
-            <p className="text-xs text-slate-400 mb-0.5">Your answer</p>
-            <p className="text-lg font-bold text-slate-800">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 dark:border-slate-700 dark:bg-slate-900/60">
+            <p className="text-xs text-slate-400 mb-0.5 dark:text-slate-500">Your answer</p>
+            <p className="text-lg font-bold text-slate-800 dark:text-slate-100">
               {question.selectedAnswer?.type === 'integer' && question.selectedAnswer.value !== null
                 ? question.selectedAnswer.value
-                : <span className="text-slate-400 font-normal italic">Not answered</span>}
+                : <span className="text-slate-400 font-normal italic dark:text-slate-500">Not answered</span>}
             </p>
           </div>
           <div
             className={[
               'rounded-xl border px-5 py-3',
               question.status === 'correct'
-                ? 'border-green-200 bg-green-50'
-                : 'border-slate-200 bg-slate-50',
+                ? 'border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30'
+                : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900/60',
             ].join(' ')}
           >
-            <p className="text-xs text-slate-400 mb-0.5">Correct answer</p>
-            <p className="text-lg font-bold text-green-700">
+            <p className="text-xs text-slate-400 mb-0.5 dark:text-slate-500">Correct answer</p>
+            <p className="text-lg font-bold text-green-700 dark:text-green-400">
               {question.correctAnswer.type === 'integer'
                 ? question.correctAnswer.value
                 : '—'}
@@ -242,9 +242,9 @@ function SummaryStat({
   color: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-5 text-center shadow-sm">
+    <div className="rounded-2xl border border-slate-100 bg-white p-5 text-center shadow-sm dark:border-slate-800 dark:bg-slate-800/60">
       <p className={`text-2xl font-bold ${color}`}>{value}</p>
-      <p className="mt-0.5 text-xs text-slate-500">{label}</p>
+      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{label}</p>
     </div>
   );
 }
@@ -262,7 +262,7 @@ export function AttemptReviewPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-400 text-sm">
+      <div className="flex items-center justify-center py-20 text-slate-400 text-sm dark:text-slate-500">
         Loading review...
       </div>
     );
@@ -272,7 +272,7 @@ export function AttemptReviewPage() {
     const raw = (error as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
     const msg = typeof raw === 'string' ? raw : 'Could not load review.';
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
         {msg}
       </div>
     );
@@ -294,14 +294,14 @@ export function AttemptReviewPage() {
       {/* Page header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">
+          <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1 dark:text-slate-500">
             Attempt Review
           </p>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             {attempt.testName}
           </h1>
           {attempt.submittedAt && (
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-slate-400 dark:text-slate-500">
               Submitted{' '}
               {new Date(attempt.submittedAt).toLocaleString('en-IN', {
                 day: 'numeric',
@@ -315,22 +315,22 @@ export function AttemptReviewPage() {
         </div>
         <Link
           to={ROUTES.STUDENT_DASHBOARD}
-          className="shrink-0 rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+          className="shrink-0 rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
         >
           ← Dashboard
         </Link>
       </div>
 
       {/* Score summary */}
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-800/60">
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className={`text-4xl font-black ${scoreColor}`}>{score}</p>
-            <p className="text-sm text-slate-400">out of {maxScore} · {percentage}%</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500">out of {maxScore} · {percentage}%</p>
           </div>
           <div className="w-24 h-24 relative flex items-center justify-center">
             <svg viewBox="0 0 36 36" className="w-24 h-24 -rotate-90">
-              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f5f9" strokeWidth="3" />
+              <circle cx="18" cy="18" r="15.9" fill="none" className="stroke-slate-100 dark:stroke-slate-700" strokeWidth="3" />
               <circle
                 cx="18"
                 cy="18"
@@ -353,17 +353,17 @@ export function AttemptReviewPage() {
       </div>
 
       {/* Filter legend */}
-      <div className="flex items-center gap-4 text-xs text-slate-500">
+      <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm bg-green-100 border border-green-200" />
+          <span className="w-3 h-3 rounded-sm bg-green-100 border border-green-200 dark:bg-green-950/40 dark:border-green-800" />
           Correct ({attempt.correctCount ?? 0})
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm bg-red-100 border border-red-200" />
+          <span className="w-3 h-3 rounded-sm bg-red-100 border border-red-200 dark:bg-red-950/40 dark:border-red-800" />
           Wrong ({attempt.wrongCount ?? 0})
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm bg-slate-100 border border-slate-200" />
+          <span className="w-3 h-3 rounded-sm bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700" />
           Skipped ({attempt.unattemptedCount ?? 0})
         </span>
       </div>
@@ -379,13 +379,13 @@ export function AttemptReviewPage() {
       <div className="flex gap-3 pt-2 pb-8">
         <Link
           to={ROUTES.STUDENT_DASHBOARD}
-          className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center"
+          className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
         >
           Dashboard
         </Link>
         <Link
           to={ROUTES.STUDENT_TESTS}
-          className="flex-1 rounded-xl bg-brand-700 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 transition-colors text-center"
+          className="flex-1 rounded-xl bg-brand-700 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 transition-colors text-center dark:bg-brand-600 dark:hover:bg-brand-700"
         >
           All Tests
         </Link>

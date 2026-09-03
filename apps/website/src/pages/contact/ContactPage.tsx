@@ -113,13 +113,13 @@ export function ContactPage() {
 
   return (
     <>
-      <section className="bg-slate-50 py-12 sm:py-20 lg:py-28">
+      <section className="bg-slate-50 py-12 sm:py-20 lg:py-28 dark:bg-slate-800/40">
         <Container narrow>
           <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-white">
               Get in Touch
             </h1>
-            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-600">
+            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-600 dark:text-slate-300">
               Have a question about our program? Want to enrol or talk to a teacher? We'd love
               to hear from you.
             </p>
@@ -133,14 +133,14 @@ export function ContactPage() {
             {/* Form */}
             <div>
               {submitted ? (
-                <div className="rounded-2xl border border-green-100 bg-green-50 p-8 text-center">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-700">
+                <div className="rounded-2xl border border-green-100 bg-green-50 p-8 text-center dark:border-green-900 dark:bg-green-950/30">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 6L9 17l-5-5" />
                     </svg>
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold text-slate-900">Message sent!</h3>
-                  <p className="mt-2 text-sm text-slate-600">
+                  <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">Message sent!</h3>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                     We'll get back to you within one business day.
                   </p>
                 </div>
@@ -189,29 +189,29 @@ export function ContactPage() {
 
             {/* Contact info */}
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Contact Information</h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Contact Information</h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 Reach out via any of the channels below and our team will respond promptly.
               </p>
               <ul className="mt-8 flex flex-col gap-6">
                 {contactInfo.map((item) => (
                   <li key={item.label} className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-400">
                       {item.icon}
                     </div>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                         {item.label}
                       </p>
                       {item.href ? (
                         <a
                           href={item.href}
-                          className="mt-0.5 text-sm text-slate-700 hover:text-brand-700"
+                          className="mt-0.5 text-sm text-slate-700 hover:text-brand-700 dark:text-slate-300 dark:hover:text-brand-400"
                         >
                           {item.value}
                         </a>
                       ) : (
-                        <p className="mt-0.5 text-sm text-slate-700">{item.value}</p>
+                        <p className="mt-0.5 text-sm text-slate-700 dark:text-slate-300">{item.value}</p>
                       )}
                     </div>
                   </li>
@@ -236,21 +236,21 @@ function FormField({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-slate-700">{label}</label>
+      <label className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</label>
       {children}
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 }
 
 function inputClass(hasError: boolean) {
   return [
-    'w-full rounded-xl border px-4 py-2.5 text-sm text-slate-900 outline-none',
-    'placeholder:text-slate-400',
-    'focus:ring-2 focus:ring-brand-700 focus:ring-offset-1',
+    'w-full rounded-xl border px-4 py-2.5 text-sm text-slate-900 outline-none dark:text-white',
+    'placeholder:text-slate-400 dark:placeholder:text-slate-500',
+    'focus:ring-2 focus:ring-brand-700 focus:ring-offset-1 dark:focus:ring-brand-500 dark:focus:ring-offset-slate-900',
     'transition-colors duration-150',
     hasError
-      ? 'border-red-300 bg-red-50 focus:border-red-400'
-      : 'border-slate-200 bg-white focus:border-brand-400',
+      ? 'border-red-300 bg-red-50 focus:border-red-400 dark:border-red-800 dark:bg-red-950/30 dark:focus:border-red-600'
+      : 'border-slate-200 bg-white focus:border-brand-400 dark:border-slate-700 dark:bg-slate-800 dark:focus:border-brand-500',
   ].join(' ');
 }

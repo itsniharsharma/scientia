@@ -13,7 +13,7 @@ export function QuestionImage({ url, alt = 'Question image', className = '' }: Q
 
   if (failed) {
     return (
-      <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-5 text-xs text-slate-400 select-none">
+      <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-5 text-xs text-slate-400 select-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500">
         Image unavailable
       </div>
     );
@@ -26,7 +26,9 @@ export function QuestionImage({ url, alt = 'Question image', className = '' }: Q
       loading="lazy"
       onError={() => setFailed(true)}
       className={[
-        'w-full max-h-72 rounded-xl border border-slate-100 object-contain bg-white',
+        // bg-white is intentional here (not theme surface color) — diagrams
+        // are authored assuming a white backdrop, so it stays fixed in both themes.
+        'w-full max-h-72 rounded-xl border border-slate-100 object-contain bg-white dark:border-slate-700',
         className,
       ].join(' ').trim()}
     />

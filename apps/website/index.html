@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+    <!-- Apply the saved/system theme before first paint, so there's no
+         flash of the wrong theme while React and the zustand store load. -->
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('scientia-theme');
+          var theme = raw ? JSON.parse(raw).state.theme : null;
+          if (!theme) {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          if (theme === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- Primary meta -->
     <title>Scientia — Master Chemistry</title>
     <meta name="description" content="India's most structured chemistry coaching platform for JEE and NEET aspirants. Expert-curated questions, fair test generation, real-time analytics." />

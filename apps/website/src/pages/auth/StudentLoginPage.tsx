@@ -39,22 +39,22 @@ export function StudentLoginPage() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-6 sm:p-8 shadow-sm">
+    <div className="rounded-2xl border border-slate-100 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-800/60">
       <div className="mb-8">
-        <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950/40 dark:text-brand-400">
           Student Portal
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Welcome back</h1>
-        <p className="mt-1.5 text-sm text-slate-500">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Welcome back</h1>
+        <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
           {"Don't have an account? "}
-          <Link to={ROUTES.SIGNUP} className="font-semibold text-brand-700 hover:text-brand-800">
+          <Link to={ROUTES.SIGNUP} className="font-semibold text-brand-700 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-300">
             Sign up free
           </Link>
         </p>
       </div>
 
       {serverError && (
-        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
           {serverError}
         </div>
       )}
@@ -74,7 +74,7 @@ export function StudentLoginPage() {
           label={
             <div className="flex items-center justify-between">
               <span>Password</span>
-              <a href="#" className="text-xs font-semibold text-brand-700 hover:text-brand-800">
+              <a href="#" className="text-xs font-semibold text-brand-700 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-300">
                 Forgot password?
               </a>
             </div>
@@ -95,9 +95,9 @@ export function StudentLoginPage() {
         </Button>
       </form>
 
-      <p className="mt-8 text-center text-xs text-slate-400">
+      <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">
         Are you a teacher?{' '}
-        <Link to={ROUTES.TEACHER_LOGIN} className="font-semibold text-slate-600 hover:text-brand-700">
+        <Link to={ROUTES.TEACHER_LOGIN} className="font-semibold text-slate-600 hover:text-brand-700 dark:text-slate-300 dark:hover:text-brand-400">
           Teacher login →
         </Link>
       </p>
@@ -116,21 +116,21 @@ function FormField({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-slate-700">{label}</label>
+      <label className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</label>
       {children}
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 }
 
 function inputClass(hasError: boolean) {
   return [
-    'w-full rounded-xl border px-4 py-2.5 text-sm text-slate-900 outline-none',
-    'placeholder:text-slate-400',
-    'focus:ring-2 focus:ring-brand-700 focus:ring-offset-1',
+    'w-full rounded-xl border px-4 py-2.5 text-sm text-slate-900 outline-none dark:text-white',
+    'placeholder:text-slate-400 dark:placeholder:text-slate-500',
+    'focus:ring-2 focus:ring-brand-700 focus:ring-offset-1 dark:focus:ring-brand-500 dark:focus:ring-offset-slate-800',
     'transition-colors duration-150',
     hasError
-      ? 'border-red-300 bg-red-50'
-      : 'border-slate-200 bg-white focus:border-brand-400',
+      ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/30'
+      : 'border-slate-200 bg-white focus:border-brand-400 dark:border-slate-700 dark:bg-slate-900 dark:focus:border-brand-500',
   ].join(' ');
 }

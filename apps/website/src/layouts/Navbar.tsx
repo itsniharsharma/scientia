@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Container } from '../components/Container';
+import { ThemeToggleButton } from '../components/ThemeToggleButton';
 import { ROUTES } from '../routes';
 import { useAuthStore } from '../store/auth.store';
 import { logout } from '../lib/auth.api';
@@ -24,7 +25,7 @@ function LoginDropdown() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus:outline-none"
+        className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus:outline-none dark:text-slate-200 dark:hover:bg-slate-800"
       >
         Log In
         <svg
@@ -39,20 +40,20 @@ function LoginDropdown() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-11 z-50 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1.5 shadow-lg">
+        <div className="absolute right-0 top-11 z-50 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1.5 shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-950/40">
           <Link
             to={ROUTES.STUDENT_LOGIN}
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors"
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors dark:text-slate-200 dark:hover:bg-slate-700/60 dark:hover:text-brand-400"
           >
             <StudentLoginIcon />
             Student
           </Link>
-          <div className="mx-3 my-1 border-t border-slate-100" />
+          <div className="mx-3 my-1 border-t border-slate-100 dark:border-slate-700" />
           <Link
             to={ROUTES.TEACHER_LOGIN}
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors"
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-700 transition-colors dark:text-slate-200 dark:hover:bg-slate-700/60 dark:hover:text-violet-400"
           >
             <TeacherLoginIcon />
             Teacher
@@ -113,17 +114,17 @@ function AvatarDropdown({
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Open profile menu"
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white hover:bg-brand-800 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-700 focus:ring-offset-2"
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white hover:bg-brand-800 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-700 focus:ring-offset-2 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-slate-900"
       >
         {initial}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-10 z-50 w-52 rounded-2xl border border-slate-200 bg-white py-2 shadow-lg">
+        <div className="absolute right-0 top-10 z-50 w-52 rounded-2xl border border-slate-200 bg-white py-2 shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:shadow-slate-950/40">
           {/* Identity */}
-          <div className="border-b border-slate-100 px-4 pb-3 pt-2">
-            <p className="text-sm font-semibold text-slate-900">{username}</p>
-            <p className="mt-0.5 text-xs text-slate-400">Role: {role === 'TEACHER' ? 'Teacher' : 'Student'}</p>
+          <div className="border-b border-slate-100 px-4 pb-3 pt-2 dark:border-slate-700">
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">{username}</p>
+            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">Role: {role === 'TEACHER' ? 'Teacher' : 'Student'}</p>
           </div>
 
           {/* Navigation */}
@@ -145,10 +146,10 @@ function AvatarDropdown({
           </div>
 
           {/* Logout */}
-          <div className="border-t border-slate-100 pt-1">
+          <div className="border-t border-slate-100 pt-1 dark:border-slate-700">
             <button
               onClick={() => { setOpen(false); onLogout(); }}
-              className="w-full px-4 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full px-4 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 transition-colors dark:text-red-400 dark:hover:bg-red-950/30"
             >
               Logout
             </button>
@@ -164,7 +165,7 @@ function DropdownLink({ to, onClick, children }: { to: string; onClick: () => vo
     <Link
       to={to}
       onClick={onClick}
-      className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+      className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors dark:text-slate-200 dark:hover:bg-slate-700/60"
     >
       {children}
     </Link>
@@ -179,7 +180,9 @@ function NavLink({ to, active, children }: { to: string; active: boolean; childr
       to={to}
       className={[
         'text-sm font-medium transition-colors',
-        active ? 'text-brand-700' : 'text-slate-600 hover:text-slate-900',
+        active
+          ? 'text-brand-700 dark:text-brand-400'
+          : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white',
       ].join(' ')}
     >
       {children}
@@ -270,7 +273,9 @@ export function Navbar() {
     <header
       className={[
         'fixed top-0 z-50 w-full transition-all duration-200',
-        scrolled ? 'bg-white shadow-sm' : 'bg-white/90 backdrop-blur-sm',
+        scrolled
+          ? 'bg-white shadow-sm dark:bg-slate-900 dark:shadow-slate-950/40'
+          : 'bg-white/90 backdrop-blur-sm dark:bg-slate-900/90',
       ].join(' ')}
     >
       <Container>
@@ -279,8 +284,8 @@ export function Navbar() {
           <Link to={ROUTES.HOME} className="flex items-center gap-2.5">
             <HexIcon />
             <span className="flex flex-col leading-tight">
-              <span className="text-xl font-bold text-brand-700">Scientia</span>
-              <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+              <span className="text-xl font-bold text-brand-700 dark:text-brand-400">Scientia</span>
+              <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 Power of Knowledge
               </span>
             </span>
@@ -319,12 +324,13 @@ export function Navbar() {
 
           {/* Desktop right */}
           <div className="hidden items-center gap-2 md:flex">
+            <ThemeToggleButton />
             {!isAuthenticated ? (
               <>
                 <LoginDropdown />
                 <Link
                   to={ROUTES.SIGNUP}
-                  className="rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-800"
+                  className="rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-800 dark:bg-brand-600 dark:hover:bg-brand-700"
                 >
                   Sign Up →
                 </Link>
@@ -338,52 +344,55 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            onClick={() => setMenuOpen((o) => !o)}
-            className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
-          >
-            {menuOpen ? <CloseIcon /> : <MenuIcon />}
-          </button>
+          {/* Mobile: theme toggle + hamburger */}
+          <div className="flex items-center gap-1 md:hidden">
+            <ThemeToggleButton />
+            <button
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              onClick={() => setMenuOpen((o) => !o)}
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              {menuOpen ? <CloseIcon /> : <MenuIcon />}
+            </button>
+          </div>
         </nav>
       </Container>
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="border-t border-slate-100 bg-white md:hidden">
+        <div className="border-t border-slate-100 bg-white md:hidden dark:border-slate-800 dark:bg-slate-900">
           <Container>
             <div className="flex flex-col gap-1 py-4">
               {!isAuthenticated ? (
                 <>
                   <Link
                     to={ROUTES.ABOUT}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     About
                   </Link>
                   <Link
                     to={ROUTES.CONTACT}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     Contact
                   </Link>
-                  <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-4">
+                  <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
                     <Link
                       to={ROUTES.SIGNUP}
-                      className="rounded-xl bg-brand-700 px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-800"
+                      className="rounded-xl bg-brand-700 px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-800 dark:bg-brand-600 dark:hover:bg-brand-700"
                     >
                       Sign Up →
                     </Link>
                     <Link
                       to={ROUTES.STUDENT_LOGIN}
-                      className="rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                      className="rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                     >
                       Student Login
                     </Link>
                     <Link
                       to={ROUTES.TEACHER_LOGIN}
-                      className="rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                      className="rounded-xl border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                     >
                       Teacher Login
                     </Link>
@@ -393,22 +402,22 @@ export function Navbar() {
                 <>
                   {/* Identity */}
                   <div className="flex items-center gap-3 rounded-lg px-3 py-2.5">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white dark:bg-brand-600">
                       {username.charAt(0).toUpperCase()}
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{username}</p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{username}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">
                         {role === 'TEACHER' ? 'Teacher' : 'Student'}
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-1 border-t border-slate-100 pt-2">
+                  <div className="mt-1 border-t border-slate-100 pt-2 dark:border-slate-800">
                     {role === 'TEACHER' ? (
                       <Link
                         to={ROUTES.TEACHER_TESTS}
-                        className="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                        className="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
                       >
                         My Tests
                       </Link>
@@ -416,13 +425,13 @@ export function Navbar() {
                       <>
                         <Link
                           to={ROUTES.STUDENT_DASHBOARD}
-                          className="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                          className="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
                         >
                           Dashboard
                         </Link>
                         <Link
                           to={ROUTES.STUDENT_TESTS}
-                          className="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                          className="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
                         >
                           My Tests
                         </Link>
@@ -430,10 +439,10 @@ export function Navbar() {
                     )}
                   </div>
 
-                  <div className="mt-2 border-t border-slate-100 pt-2">
+                  <div className="mt-2 border-t border-slate-100 pt-2 dark:border-slate-800">
                     <button
                       onClick={handleLogout}
-                      className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                      className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
                     >
                       Logout
                     </button>

@@ -37,7 +37,7 @@ export function LatexContent({ content, className = '' }: LatexContentProps) {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-mono text-xs text-red-600">
+      <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-mono text-xs text-red-600 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
         LaTeX error — check syntax
       </div>
     );

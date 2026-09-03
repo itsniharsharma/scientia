@@ -16,10 +16,10 @@ function AttemptCard({ attempt }: { attempt: AttemptSummaryDto }) {
   const navigate = useNavigate();
   const scoreColor =
     attempt.score === null
-      ? 'text-slate-400'
+      ? 'text-slate-400 dark:text-slate-500'
       : attempt.score >= 0
-        ? 'text-green-700'
-        : 'text-red-600';
+        ? 'text-green-700 dark:text-green-400'
+        : 'text-red-600 dark:text-red-400';
 
   const isReviewable = attempt.status === 'SUBMITTED';
 
@@ -27,33 +27,33 @@ function AttemptCard({ attempt }: { attempt: AttemptSummaryDto }) {
     <div
       onClick={() => isReviewable && navigate(ROUTES.STUDENT_REVIEW(attempt.id))}
       className={[
-        'rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition',
-        isReviewable ? 'cursor-pointer hover:shadow-lg hover:border-slate-200' : '',
+        'rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition dark:border-slate-800 dark:bg-slate-800/60',
+        isReviewable ? 'cursor-pointer hover:shadow-lg hover:border-slate-200 dark:hover:border-slate-700' : '',
       ].join(' ')}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-slate-900 truncate">{attempt.testName}</h3>
-          <p className="mt-1 text-sm text-slate-500">{attempt.questionCount} questions</p>
-          <p className="mt-0.5 text-xs text-slate-400">
+          <h3 className="font-semibold text-slate-900 truncate dark:text-white">{attempt.testName}</h3>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{attempt.questionCount} questions</p>
+          <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
             {attempt.submittedAt ? formatDate(attempt.submittedAt) : '—'}
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <div className="text-right">
             <p className={`text-xl font-bold ${scoreColor}`}>{attempt.score ?? '—'}</p>
-            <p className="text-xs text-slate-400">score</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">score</p>
           </div>
           {isReviewable && (
-            <span className="text-xs font-medium text-brand-700">Review →</span>
+            <span className="text-xs font-medium text-brand-700 dark:text-brand-400">Review →</span>
           )}
         </div>
       </div>
       {attempt.status === 'SUBMITTED' && (
-        <div className="mt-3 flex gap-4 border-t border-slate-50 pt-3 text-xs text-slate-500">
-          <span className="text-green-600 font-medium">✓ {attempt.correctCount} correct</span>
-          <span className="text-red-500 font-medium">✗ {attempt.wrongCount} wrong</span>
-          <span className="text-slate-400">— {attempt.unattemptedCount} skipped</span>
+        <div className="mt-3 flex gap-4 border-t border-slate-50 pt-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+          <span className="text-green-600 font-medium dark:text-green-400">✓ {attempt.correctCount} correct</span>
+          <span className="text-red-500 font-medium dark:text-red-400">✗ {attempt.wrongCount} wrong</span>
+          <span className="text-slate-400 dark:text-slate-500">— {attempt.unattemptedCount} skipped</span>
         </div>
       )}
     </div>
@@ -69,26 +69,26 @@ export default function RecentTestsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Recent Tests</h1>
-        <p className="mt-1 text-sm text-slate-500">Your complete attempt history.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Recent Tests</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your complete attempt history.</p>
       </div>
 
       {isLoading && (
         <div className="flex items-center justify-center py-24">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-700 border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-700 border-t-transparent dark:border-brand-500" />
         </div>
       )}
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
           Failed to load attempts. Please refresh.
         </div>
       )}
 
       {attempts && attempts.length === 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-slate-200 p-16 text-center">
-          <p className="text-slate-500 font-medium">No completed tests yet.</p>
-          <p className="mt-1 text-sm text-slate-400">
+        <div className="rounded-2xl border-2 border-dashed border-slate-200 p-16 text-center dark:border-slate-700">
+          <p className="text-slate-500 font-medium dark:text-slate-300">No completed tests yet.</p>
+          <p className="mt-1 text-sm text-slate-400 dark:text-slate-500">
             Your results will appear here after submitting a test.
           </p>
         </div>

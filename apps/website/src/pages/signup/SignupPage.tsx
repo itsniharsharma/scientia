@@ -74,16 +74,16 @@ function ArrowLeftIcon() {
 
 function RoleSelector({ onSelect }: { onSelect: (role: Role) => void }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white px-8 py-9 shadow-sm">
+    <div className="rounded-2xl border border-slate-100 bg-white px-8 py-9 shadow-sm dark:border-slate-800 dark:bg-slate-800/60">
       {/* Header */}
       <div className="mb-8 text-center">
-        <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-brand-600">
+        <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">
           Join Scientia
         </p>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
           Who are you?
         </h1>
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           Pick your role to get started
         </p>
       </div>
@@ -107,11 +107,11 @@ function RoleSelector({ onSelect }: { onSelect: (role: Role) => void }) {
       </div>
 
       {/* Footer */}
-      <p className="mt-8 text-center text-sm text-slate-500">
+      <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
         Already have an account?{' '}
         <Link
           to={ROUTES.STUDENT_LOGIN}
-          className="font-semibold text-brand-700 hover:text-brand-800 transition-colors"
+          className="font-semibold text-brand-700 hover:text-brand-800 transition-colors dark:text-brand-400 dark:hover:text-brand-300"
         >
           Log in
         </Link>
@@ -133,13 +133,16 @@ function RoleCard({
   accent: 'brand' | 'violet';
   onClick: () => void;
 }) {
-  const ringColor = accent === 'brand' ? 'hover:border-brand-400 hover:ring-brand-100' : 'hover:border-violet-400 hover:ring-violet-100';
-  const bgHover = accent === 'brand' ? 'hover:bg-brand-50' : 'hover:bg-violet-50';
+  const ringColor =
+    accent === 'brand'
+      ? 'hover:border-brand-400 hover:ring-brand-100 dark:hover:border-brand-500 dark:hover:ring-brand-950/40'
+      : 'hover:border-violet-400 hover:ring-violet-100 dark:hover:border-violet-500 dark:hover:ring-violet-950/40';
+  const bgHover = accent === 'brand' ? 'hover:bg-brand-50 dark:hover:bg-brand-950/20' : 'hover:bg-violet-50 dark:hover:bg-violet-950/20';
   const btnColor =
     accent === 'brand'
-      ? 'bg-brand-700 hover:bg-brand-800 text-white'
+      ? 'bg-brand-700 hover:bg-brand-800 text-white dark:bg-brand-600 dark:hover:bg-brand-700'
       : 'bg-violet-600 hover:bg-violet-700 text-white';
-  const iconBg = accent === 'brand' ? 'bg-brand-50' : 'bg-violet-50';
+  const iconBg = accent === 'brand' ? 'bg-brand-50 dark:bg-brand-950/40' : 'bg-violet-50 dark:bg-violet-950/40';
 
   return (
     <button
@@ -147,14 +150,15 @@ function RoleCard({
       className={[
         'group flex flex-1 flex-col items-start rounded-2xl border border-slate-200 p-5 text-left',
         'outline-none ring-2 ring-transparent transition-all duration-150',
+        'dark:border-slate-700',
         ringColor,
         bgHover,
         'focus-visible:ring-offset-2',
       ].join(' ')}
     >
       <div className={`mb-4 rounded-xl p-2.5 ${iconBg}`}>{icon}</div>
-      <p className="text-base font-bold text-slate-900">{title}</p>
-      <p className="mt-1 text-xs leading-relaxed text-slate-500">{description}</p>
+      <p className="text-base font-bold text-slate-900 dark:text-white">{title}</p>
+      <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{description}</p>
       <div className={`mt-5 w-full rounded-xl px-4 py-2.5 text-center text-sm font-semibold transition-colors ${btnColor}`}>
         Continue as {title}
       </div>
@@ -193,28 +197,28 @@ function StudentSignupForm({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white px-8 py-9 shadow-sm">
+    <div className="rounded-2xl border border-slate-100 bg-white px-8 py-9 shadow-sm dark:border-slate-800 dark:bg-slate-800/60">
       {/* Back + header */}
       <div className="mb-7">
         <button
           onClick={onBack}
-          className="mb-5 flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+          className="mb-5 flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors dark:text-slate-400 dark:hover:text-white"
         >
           <ArrowLeftIcon />
           Back
         </button>
-        <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+        <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950/40 dark:text-brand-400">
           <StudentIcon />
           Student
         </span>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
           Create your account
         </h1>
-        <p className="mt-1.5 text-sm text-slate-500">
+        <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
           Already have an account?{' '}
           <Link
             to={ROUTES.STUDENT_LOGIN}
-            className="font-semibold text-brand-700 hover:text-brand-800 transition-colors"
+            className="font-semibold text-brand-700 hover:text-brand-800 transition-colors dark:text-brand-400 dark:hover:text-brand-300"
           >
             Log in
           </Link>
@@ -222,7 +226,7 @@ function StudentSignupForm({ onBack }: { onBack: () => void }) {
       </div>
 
       {serverError && (
-        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
           {serverError}
         </div>
       )}
@@ -295,7 +299,7 @@ function StudentSignupForm({ onBack }: { onBack: () => void }) {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-xs text-slate-400">
+      <p className="mt-6 text-center text-xs text-slate-400 dark:text-slate-500">
         By signing up you agree to our Terms of Service and Privacy Policy.
       </p>
     </div>
@@ -306,42 +310,42 @@ function StudentSignupForm({ onBack }: { onBack: () => void }) {
 
 function TeacherInfoCard({ onBack }: { onBack: () => void }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white px-8 py-9 shadow-sm">
+    <div className="rounded-2xl border border-slate-100 bg-white px-8 py-9 shadow-sm dark:border-slate-800 dark:bg-slate-800/60">
       <button
         onClick={onBack}
-        className="mb-5 flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+        className="mb-5 flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors dark:text-slate-400 dark:hover:text-white"
       >
         <ArrowLeftIcon />
         Back
       </button>
 
       <div className="mb-7">
-        <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
+        <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700 dark:bg-violet-950/40 dark:text-violet-400">
           <TeacherIcon />
           Teacher
         </span>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
           Teacher Account
         </h1>
-        <p className="mt-1.5 text-sm text-slate-500">
+        <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
           How teacher accounts work on Scientia
         </p>
       </div>
 
       {/* Info box */}
-      <div className="rounded-2xl border border-violet-100 bg-violet-50 p-5">
+      <div className="rounded-2xl border border-violet-100 bg-violet-50 p-5 dark:border-violet-900 dark:bg-violet-950/20">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-100">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/50">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <circle cx="8" cy="8" r="7" stroke="#7c3aed" strokeWidth="1.3" />
               <path d="M8 5v3.5M8 11v.5" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-800">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
               Accounts are provisioned by your institution
             </p>
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+            <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
               Teacher accounts on Scientia are created by the platform
               administrator. If you're an educator, contact your institution's
               coordinator to get your login credentials.
@@ -358,10 +362,10 @@ function TeacherInfoCard({ onBack }: { onBack: () => void }) {
           'Log in using the Teacher Login page',
         ].map((step, i) => (
           <div key={i} className="flex items-start gap-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500 dark:bg-slate-700 dark:text-slate-300">
               {i + 1}
             </span>
-            <p className="pt-0.5 text-sm text-slate-600">{step}</p>
+            <p className="pt-0.5 text-sm text-slate-600 dark:text-slate-300">{step}</p>
           </div>
         ))}
       </div>
@@ -377,11 +381,11 @@ function TeacherInfoCard({ onBack }: { onBack: () => void }) {
         </svg>
       </Link>
 
-      <p className="mt-4 text-center text-sm text-slate-500">
+      <p className="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
         Signing up as a student?{' '}
         <button
           onClick={onBack}
-          className="font-semibold text-brand-700 hover:text-brand-800 transition-colors"
+          className="font-semibold text-brand-700 hover:text-brand-800 transition-colors dark:text-brand-400 dark:hover:text-brand-300"
         >
           Go back
         </button>
@@ -406,26 +410,26 @@ function FormField({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-slate-700">{label}</label>
+        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</label>
         {hint && !error && (
-          <span className="text-xs text-slate-400">{hint}</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">{hint}</span>
         )}
       </div>
       {children}
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 }
 
 function inputClass(hasError: boolean) {
   return [
-    'w-full rounded-xl border px-4 py-2.5 text-sm text-slate-900 outline-none',
-    'placeholder:text-slate-400',
-    'focus:ring-2 focus:ring-brand-700 focus:ring-offset-1',
+    'w-full rounded-xl border px-4 py-2.5 text-sm text-slate-900 outline-none dark:text-white',
+    'placeholder:text-slate-400 dark:placeholder:text-slate-500',
+    'focus:ring-2 focus:ring-brand-700 focus:ring-offset-1 dark:focus:ring-brand-500 dark:focus:ring-offset-slate-800',
     'transition-colors duration-150',
     hasError
-      ? 'border-red-300 bg-red-50'
-      : 'border-slate-200 bg-white focus:border-brand-400',
+      ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/30'
+      : 'border-slate-200 bg-white focus:border-brand-400 dark:border-slate-700 dark:bg-slate-900 dark:focus:border-brand-500',
   ].join(' ');
 }
 

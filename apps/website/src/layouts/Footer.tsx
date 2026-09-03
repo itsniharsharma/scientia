@@ -12,25 +12,25 @@ const quickLinks = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-slate-100 bg-white">
+    <footer className="border-t border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-900">
       <Container>
         <div className="grid grid-cols-1 gap-8 py-12 sm:gap-12 sm:py-16 sm:grid-cols-2 md:grid-cols-3">
           <div>
             <Link
               to={ROUTES.HOME}
-              className="flex items-center gap-2.5 text-xl font-bold text-brand-700"
+              className="flex items-center gap-2.5 text-xl font-bold text-brand-700 dark:text-brand-400"
             >
               <HexIcon />
               Scientia
             </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500 dark:text-slate-400">
               India's most structured chemistry coaching platform for JEE and NEET aspirants.
               Built for students who are serious about results.
             </p>
           </div>
 
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
               Quick Links
             </h3>
             <ul className="mt-4 space-y-3">
@@ -38,7 +38,7 @@ export function Footer() {
                 <li key={link.to}>
                   <Link
                     to={link.to}
-                    className="text-sm text-slate-600 transition-colors hover:text-brand-700"
+                    className="text-sm text-slate-600 transition-colors hover:text-brand-700 dark:text-slate-300 dark:hover:text-brand-400"
                   >
                     {link.label}
                   </Link>
@@ -48,14 +48,14 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
               Contact
             </h3>
             <ul className="mt-4 space-y-3">
               <li>
                 <a
                   href="mailto:info@scientia.in"
-                  className="text-sm text-slate-600 transition-colors hover:text-brand-700"
+                  className="text-sm text-slate-600 transition-colors hover:text-brand-700 dark:text-slate-300 dark:hover:text-brand-400"
                 >
                   info@scientia.in
                 </a>
@@ -63,12 +63,12 @@ export function Footer() {
               <li>
                 <a
                   href="tel:+919876543210"
-                  className="text-sm text-slate-600 transition-colors hover:text-brand-700"
+                  className="text-sm text-slate-600 transition-colors hover:text-brand-700 dark:text-slate-300 dark:hover:text-brand-400"
                 >
                   +91 98765 43210
                 </a>
               </li>
-              <li className="text-sm leading-relaxed text-slate-500">
+              <li className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                 Chemistry Excellence Centre
                 <br />
                 Kota, Rajasthan 324005
@@ -77,11 +77,11 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-100 py-6 sm:flex-row">
-          <p className="text-sm text-slate-400">
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-100 py-6 sm:flex-row dark:border-slate-800">
+          <p className="text-sm text-slate-400 dark:text-slate-500">
             © {new Date().getFullYear()} Scientia. All rights reserved.
           </p>
-          <p className="text-sm text-slate-400">Structured learning. Real results.</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">Structured learning. Real results.</p>
         </div>
       </Container>
     </footer>
