@@ -9,6 +9,7 @@ export interface BatchDto {
   id: string;
   name: string;
   teacherId: string;
+  organisationId: string | null;
   studentCount: number;
   testCount: number;
   createdAt: string;

@@ -26,6 +26,7 @@ const TestReviewPage    = lazy(() => import('../pages/teacher/TestReviewPage').t
 const TestAnalyticsPage = lazy(() => import('../pages/teacher/TestAnalyticsPage').then(m => ({ default: m.TestAnalyticsPage })));
 const BatchesPage       = lazy(() => import('../pages/teacher/BatchesPage'));
 const BatchDetailPage   = lazy(() => import('../pages/teacher/BatchDetailPage'));
+const OrganisationPage  = lazy(() => import('../pages/teacher/OrganisationPage'));
 const TeacherProfilePage = lazy(() => import('../pages/teacher/TeacherProfilePage'));
 
 // Student portal
@@ -78,6 +79,7 @@ export function AppRouter() {
             <Route path="/teacher/tests/:testId" element={<TestDetailPage />} />
             <Route path="/teacher/tests/:testId/review" element={<TestReviewPage />} />
             <Route path="/teacher/tests/:testId/analytics" element={<TestAnalyticsPage />} />
+            <Route path="/teacher/organisation" element={<OrganisationPage />} />
             <Route path="/teacher/profile" element={<TeacherProfilePage />} />
           </Route>
         </Route>

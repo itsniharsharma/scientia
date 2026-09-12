@@ -37,6 +37,9 @@ export async function getTeacherProfile(teacherId: string): Promise<TeacherDto> 
   return {
     id: teacher.id,
     username: teacher.username,
+    fullName: teacher.fullName,
+    phone: teacher.phone,
+    email: teacher.email,
     role: 'TEACHER',
     createdAt: teacher.createdAt.toISOString(),
     updatedAt: teacher.updatedAt.toISOString(),

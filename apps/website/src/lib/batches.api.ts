@@ -11,8 +11,8 @@ export async function listBatches(): Promise<BatchDto[]> {
   return res.data;
 }
 
-export async function createBatch(name: string): Promise<BatchDetailDto> {
-  const res = await api.post('/teacher/batches', { name });
+export async function createBatch(name: string, organisationId: string): Promise<BatchDetailDto> {
+  const res = await api.post('/teacher/batches', { name, organisationId });
   return res.data;
 }
 

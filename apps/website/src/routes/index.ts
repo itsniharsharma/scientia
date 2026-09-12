@@ -15,6 +15,7 @@ export const ROUTES = {
   TEACHER_BATCHES: '/teacher/batches',
   TEACHER_BATCH: (id: string) => `/teacher/batches/${id}` as const,
   TEACHER_BATCH_TEST_NEW: (batchId: string) => `/teacher/batches/${batchId}/tests/new` as const,
+  TEACHER_ORGANISATION: '/teacher/organisation',
   TEACHER_PROFILE: '/teacher/profile',
 
   // Student portal

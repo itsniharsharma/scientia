@@ -2,15 +2,22 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { listBatches, createBatch } from '../../lib/batches.api';
+import { getMyOrganisations } from '../../lib/organisations.api';
 import { ROUTES } from '../../routes';
 
 function CreateBatchModal({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState('');
+  const [organisationId, setOrganisationId] = useState('');
   const [error, setError] = useState('');
   const qc = useQueryClient();
 
+  const { data: organisations = [], isLoading: loadingOrgs } = useQuery({
+    queryKey: ['my-organisations'],
+    queryFn: getMyOrganisations,
+  });
+
   const mutation = useMutation({
-    mutationFn: () => createBatch(name.trim()),
+    mutationFn: () => createBatch(name.trim(), organisationId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['batches'] });
       onClose();
@@ -22,6 +29,7 @@ function CreateBatchModal({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     setError('');
     if (!name.trim()) { setError('Batch name is required'); return; }
+    if (!organisationId) { setError('Select an organisation'); return; }
     mutation.mutate();
   };
 
@@ -39,6 +47,29 @@ function CreateBatchModal({ onClose }: { onClose: () => void }) {
               autoFocus
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none ring-brand-500 focus:ring-2 focus:border-transparent dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500"
             />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Organisation</label>
+            <select
+              value={organisationId}
+              onChange={(e) => setOrganisationId(e.target.value)}
+              disabled={loadingOrgs}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-brand-500 focus:ring-2 focus:border-transparent dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            >
+              <option value="">
+                {loadingOrgs ? 'Loading organisations…' : 'Select organisation'}
+              </option>
+              {organisations.map((org) => (
+                <option key={org.organisationId} value={org.organisationId}>
+                  {org.organisationName}
+                </option>
+              ))}
+            </select>
+            {!loadingOrgs && organisations.length === 0 && (
+              <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
+                You are not a member of any organisation yet.
+              </p>
+            )}
             {error && <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{error}</p>}
           </div>
           <div className="flex justify-end gap-3 pt-1">

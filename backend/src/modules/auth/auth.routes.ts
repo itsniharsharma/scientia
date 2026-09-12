@@ -2,11 +2,13 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import {
   registerStudentSchema,
+  registerTeacherSchema,
   loginStudentSchema,
   loginTeacherSchema,
 } from '@scientia/validators';
 import { validate } from '../../shared/middleware/validate';
 import { authenticate } from '../../shared/middleware/authenticate';
+import { withTestBypass } from '../../shared/middleware/test-rate-limit';
 import { UpstashRateLimitStore } from '../../lib/rate-limit-store';
 import { redis } from '../../lib/redis';
 import * as AuthController from './auth.controller';
@@ -17,23 +19,27 @@ const router = Router();
 // survive deploys. When Redis is absent (local dev), falls back to in-memory store.
 const redisStore = redis !== null ? new UpstashRateLimitStore() : undefined;
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many requests, please try again later' },
-  ...(redisStore && { store: redisStore }),
-});
+const authLimiter = withTestBypass(
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later' },
+    ...(redisStore && { store: redisStore }),
+  }),
+);
 
-const registerLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many registrations from this IP, try again later' },
-  ...(redisStore && { store: new UpstashRateLimitStore() }),
-});
+const registerLimiter = withTestBypass(
+  rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many registrations from this IP, try again later' },
+    ...(redisStore && { store: new UpstashRateLimitStore() }),
+  }),
+);
 
 // POST /auth/student/register
 router.post(
@@ -41,6 +47,14 @@ router.post(
   registerLimiter,
   validate(registerStudentSchema),
   AuthController.registerStudent,
+);
+
+// POST /auth/teacher/register
+router.post(
+  '/teacher/register',
+  registerLimiter,
+  validate(registerTeacherSchema),
+  AuthController.registerTeacher,
 );
 
 // POST /auth/student/login

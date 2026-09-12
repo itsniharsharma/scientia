@@ -17,6 +17,7 @@ export interface StudentProfileDto {
   username: string;
   fullName: string;
   phone: string;
+  email: string | null;
   role: 'STUDENT';
   createdAt: string;
   updatedAt: string;

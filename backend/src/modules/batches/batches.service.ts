@@ -1,7 +1,8 @@
 import { prisma } from '../../lib/prisma';
-import { NotFoundError, ForbiddenError, ConflictError } from '../../shared/errors';
+import { NotFoundError, ForbiddenError, ConflictError, UnprocessableError } from '../../shared/errors';
 import { getCached, invalidate, CACHE_KEYS, TTL } from '../../shared/cache';
 import { resolveTestStatus } from '../tests/tests.utils';
+import { requireTeacherOrgMember } from '../organisations/organisations.service';
 import type { CreateBatchInput, UpdateBatchInput, AddStudentToBatchInput } from '@scientia/validators';
 import type { BatchDto, BatchDetailDto, BatchStudentDto } from '@scientia/types';
 import type { TestDto } from '@scientia/types';
@@ -25,6 +26,7 @@ function toBatchDto(
     id: b.id,
     name: b.name,
     teacherId: b.teacherId,
+    organisationId: b.organisationId,
     studentCount: b._count.students,
     testCount: b._count.tests,
     createdAt: b.createdAt.toISOString(),
@@ -53,8 +55,13 @@ export async function createBatch(
   teacherId: string,
   data: CreateBatchInput,
 ): Promise<BatchDetailDto> {
+  // A teacher can only create a batch under an organisation they actually
+  // belong to — the organisationId in the request body is never trusted on
+  // its own as proof of authorization.
+  await requireTeacherOrgMember(teacherId, data.organisationId);
+
   const batch = await prisma.batch.create({
-    data: { name: data.name.trim(), teacherId },
+    data: { name: data.name.trim(), teacherId, organisationId: data.organisationId },
     include: { _count: { select: { students: true, tests: true } } },
   });
   await invalidate(CACHE_KEYS.teacherBatches(teacherId));
@@ -129,12 +136,28 @@ export async function addStudentToBatch(
   teacherId: string,
   data: AddStudentToBatchInput,
 ): Promise<BatchStudentDto> {
-  await requireBatchOwner(batchId, teacherId);
+  const batch = await requireBatchOwner(batchId, teacherId);
 
   const student = await prisma.student.findUnique({
-    where: { username: data.username.trim() },
+    where: { username: data.username.trim().toLowerCase() },
   });
   if (!student) throw new NotFoundError(`No student found with username "${data.username}"`);
+
+  // If this batch belongs to an organisation, the student must already be
+  // assigned to that same organisation (by a teacher, via the organisation
+  // assignment flow) before they can be added to a batch inside it. Legacy
+  // batches (organisationId: null) are unaffected — existing behavior for
+  // them is unchanged.
+  if (batch.organisationId) {
+    const membership = await prisma.studentOrganisation.findUnique({
+      where: {
+        studentId_organisationId: { studentId: student.id, organisationId: batch.organisationId },
+      },
+    });
+    if (!membership) {
+      throw new UnprocessableError('Student is not part of this organisation');
+    }
+  }
 
   // Let the DB unique constraint do the conflict check instead of a preflight query
   let bs;

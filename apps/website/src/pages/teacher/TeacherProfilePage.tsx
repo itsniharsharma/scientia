@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/axios';
+import { getMyOrganisations } from '../../lib/organisations.api';
 
 interface TeacherProfile {
   id: string;
   username: string;
+  fullName: string | null;
+  phone: string | null;
+  email: string | null;
   role: string;
   createdAt: string;
   updatedAt: string;
@@ -18,6 +22,11 @@ export default function TeacherProfilePage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['teacher-profile'],
     queryFn: getTeacherProfile,
+  });
+
+  const { data: organisations = [] } = useQuery({
+    queryKey: ['my-organisations'],
+    queryFn: getMyOrganisations,
   });
 
   if (isLoading) {
@@ -74,6 +83,26 @@ export default function TeacherProfilePage() {
             <dd className="text-sm font-medium text-slate-800 dark:text-slate-100">{joined}</dd>
           </div>
         </dl>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-800/60">
+        <h2 className="mb-1 text-base font-semibold text-slate-900 dark:text-white">Organisations</h2>
+        <p className="mb-3 text-xs text-slate-400 dark:text-slate-500">
+          Organisations you belong to. Manage assignments from the Organisation page.
+        </p>
+        {organisations.length === 0 ? (
+          <p className="py-4 text-center text-sm text-slate-400 dark:text-slate-500">
+            You are not a member of any organisation yet.
+          </p>
+        ) : (
+          <ul className="divide-y divide-slate-100 dark:divide-slate-700">
+            {organisations.map((org) => (
+              <li key={org.organisationId} className="py-2.5 text-sm font-medium text-slate-800 dark:text-slate-100">
+                {org.organisationName}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

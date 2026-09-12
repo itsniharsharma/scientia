@@ -125,17 +125,40 @@ enum UserRole {
   STUDENT
 }
 
+// Global username registry: the single source of truth for username
+// uniqueness across BOTH Teacher and Student. A row here is created
+// atomically alongside every Teacher/Student row so the same username can
+// never be claimed by both a student and a teacher.
+enum UsernameOwnerType {
+  STUDENT
+  TEACHER
+}
+
+model Username {
+  username  String            @id
+  ownerType UsernameOwnerType
+  ownerId   String
+  createdAt DateTime          @default(now())
+
+  @@map("usernames")
+}
+
 model Teacher {
   id             String   @id @default(uuid())
   username       String   @unique
   password       String
+  fullName       String?
+  phone          String?  @unique
+  email          String?  @unique
   telegramUserId String?  @unique
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  tests      Test[]
-  batches    Batch[]
-  uploadJobs UploadJob[]
+  tests                Test[]
+  batches              Batch[]
+  uploadJobs           UploadJob[]
+  teacherOrganisations TeacherOrganisation[]
+  studentAssignments   StudentOrganisation[] @relation("AssignedByTeacher")
 
   @@map("teachers")
 }
@@ -144,31 +167,88 @@ model Student {
   id        String   @id @default(uuid())
   fullName  String
   phone     String   @unique
+  email     String?  @unique
   username  String   @unique
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  attempts Attempt[]
-  batches  BatchStudent[]
+  attempts             Attempt[]
+  batches              BatchStudent[]
+  studentOrganisations StudentOrganisation[]
 
   @@map("students")
+}
+
+// ─── Organisations ───────────────────────────────────────────────────────────
+
+model Organisation {
+  id             String   @id @default(uuid())
+  name           String
+  normalizedName String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  teacherOrganisations TeacherOrganisation[]
+  studentOrganisations StudentOrganisation[]
+  batches              Batch[]
+
+  @@map("organisations")
+}
+
+// Composite primary key, matching this codebase's existing pure-join-table
+// convention (see BatchStudent below) — no surrogate id column, since
+// (teacherId, organisationId) is already the natural, permanent identity of
+// this row and nothing ever references it by a separate id.
+model TeacherOrganisation {
+  teacherId      String
+  organisationId String
+  createdAt      DateTime @default(now())
+
+  teacher      Teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@id([teacherId, organisationId])
+  @@index([organisationId])
+  @@map("teacher_organisations")
+}
+
+model StudentOrganisation {
+  studentId           String
+  organisationId      String
+  assignedByTeacherId String
+  createdAt           DateTime @default(now())
+
+  student           Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  organisation      Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  assignedByTeacher Teacher      @relation("AssignedByTeacher", fields: [assignedByTeacherId], references: [id])
+
+  @@id([studentId, organisationId])
+  @@index([organisationId])
+  // Supports the ON DELETE RESTRICT check on assignedByTeacherId (Postgres
+  // must scan for referencing rows before allowing a Teacher delete) and any
+  // future "assignments made by this teacher" lookup.
+  @@index([assignedByTeacherId])
+  @@map("student_organisations")
 }
 
 // ─── Batches ─────────────────────────────────────────────────────────────────
 
 model Batch {
-  id        String   @id @default(cuid())
-  name      String
-  teacherId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  teacherId      String
+  organisationId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  teacher  Teacher        @relation(fields: [teacherId], references: [id])
-  students BatchStudent[]
-  tests    Test[]
+  teacher      Teacher       @relation(fields: [teacherId], references: [id])
+  organisation Organisation? @relation(fields: [organisationId], references: [id])
+  students     BatchStudent[]
+  tests        Test[]
 
   @@index([teacherId])
+  @@index([organisationId])
   @@map("batches")
 }
 

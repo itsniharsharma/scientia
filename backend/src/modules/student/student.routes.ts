@@ -18,4 +18,10 @@ router.get('/batches/:batchId', StudentController.getBatch);
 router.get('/profile', StudentController.getProfile);
 router.get('/attempts', StudentController.listAttempts);
 
+// Organisation assignments — READ ONLY. Students can view which
+// organisations they belong to but there is deliberately no write route
+// here: self-assignment, self-removal, and switching organisations are not
+// possible because no such endpoint exists under this STUDENT-only router.
+router.get('/organisations', StudentController.listMyOrganisations);
+
 export default router;

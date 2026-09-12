@@ -59,6 +59,7 @@ export async function getStudentProfile(studentId: string) {
     username: student.username,
     fullName: student.fullName,
     phone: student.phone,
+    email: student.email,
     role: 'STUDENT' as const,
     createdAt: student.createdAt.toISOString(),
     updatedAt: student.updatedAt.toISOString(),

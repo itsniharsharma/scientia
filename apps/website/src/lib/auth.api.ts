@@ -10,12 +10,27 @@ interface LoginResponse<T> {
 }
 
 export async function registerStudent(data: {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   phone: string;
+  email: string;
   username: string;
   password: string;
 }): Promise<LoginResponse<StudentDto>> {
   const res = await api.post<LoginResponse<StudentDto>>('/auth/student/register', data);
+  return res.data;
+}
+
+export async function registerTeacher(data: {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  username: string;
+  password: string;
+  organisationId: string;
+}): Promise<LoginResponse<TeacherDto>> {
+  const res = await api.post<LoginResponse<TeacherDto>>('/auth/teacher/register', data);
   return res.data;
 }
 

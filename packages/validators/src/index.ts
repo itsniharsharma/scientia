@@ -6,3 +6,4 @@ export * from './auth.schema';
 export * from './test.schema';
 export * from './attempt.schema';
 export * from './batch.schema';
+export * from './organisation.schema';

@@ -15,7 +15,7 @@ export function AuthLayout() {
         <HexIcon />
         Scientia
       </Link>
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-lg">
         <Outlet />
       </div>
     </div>

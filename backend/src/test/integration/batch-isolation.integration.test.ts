@@ -2,51 +2,76 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import app from '../../app';
 import { prisma } from '../../lib/prisma';
-import { RUN_ID, cleanupTestUsers, loginTeacher } from './helpers';
+import { RUN_ID, cleanupTestUsers, registerTestOrganisation, registerTestTeacher } from './helpers';
 
 const skipIfNoDb = !process.env.DATABASE_URL ? it.skip : it;
-const skipIfNoTeacher = !process.env.TEST_TEACHER_USERNAME ? it.skip : it;
 
 describe('Batch Isolation Integration', () => {
   let teacherCookie: string;
+  let organisationId: string;
   let batchId: string;
   let studentACookie: string;
   let studentBCookie: string;
 
   beforeAll(async () => {
-    if (!process.env.DATABASE_URL || !process.env.TEST_TEACHER_USERNAME) return;
+    if (!process.env.DATABASE_URL) return;
 
-    teacherCookie = await loginTeacher();
+    const org = await registerTestOrganisation();
+    organisationId = org.id;
 
-    // Create a test batch
+    const teacher = await registerTestTeacher(organisationId);
+    teacherCookie = teacher.cookie;
+
+    // Create a test batch scoped to the freshly-registered organisation
     const batchRes = await request(app)
       .post('/teacher/batches')
       .set('Cookie', teacherCookie)
-      .send({ name: `${RUN_ID}batch` });
+      .send({ name: `${RUN_ID}batch`, organisationId });
 
     if (batchRes.status === 201) {
       batchId = batchRes.body.id;
     }
 
-    // Register student A and enroll them
+    // Register student A, assign them to the organisation, then enroll them in the batch
     const phoneA = `9${Math.floor(100000000 + Math.random() * 900000000)}`;
+    const usernameA = `${RUN_ID}stuA`;
     const regA = await request(app)
       .post('/auth/student/register')
-      .send({ fullName: 'Student A', phone: phoneA, username: `${RUN_ID}stuA`, password: 'pass1234' });
+      .send({
+        firstName: 'Student',
+        lastName: 'A',
+        phone: phoneA,
+        email: `${usernameA}@example.test`,
+        username: usernameA,
+        password: 'pass1234',
+      });
     studentACookie = (regA.headers['set-cookie'] as unknown as string[])[0];
 
     if (batchId) {
       await request(app)
+        .post(`/organisations/${organisationId}/students`)
+        .set('Cookie', teacherCookie)
+        .send({ username: usernameA });
+
+      await request(app)
         .post(`/teacher/batches/${batchId}/students`)
         .set('Cookie', teacherCookie)
-        .send({ username: `${RUN_ID}stuA` });
+        .send({ username: usernameA });
     }
 
-    // Register student B (NOT enrolled)
+    // Register student B (NOT enrolled, NOT assigned to the organisation)
     const phoneB = `9${Math.floor(100000000 + Math.random() * 900000000)}`;
+    const usernameB = `${RUN_ID}stuB`;
     const regB = await request(app)
       .post('/auth/student/register')
-      .send({ fullName: 'Student B', phone: phoneB, username: `${RUN_ID}stuB`, password: 'pass1234' });
+      .send({
+        firstName: 'Student',
+        lastName: 'B',
+        phone: phoneB,
+        email: `${usernameB}@example.test`,
+        username: usernameB,
+        password: 'pass1234',
+      });
     studentBCookie = (regB.headers['set-cookie'] as unknown as string[])[0];
   });
 
@@ -60,7 +85,7 @@ describe('Batch Isolation Integration', () => {
     await prisma.$disconnect();
   });
 
-  skipIfNoTeacher('Student A can view their enrolled batch', async () => {
+  skipIfNoDb('Student A can view their enrolled batch', async () => {
     if (!batchId) return;
     const res = await request(app)
       .get(`/student/batches/${batchId}`)
@@ -70,7 +95,7 @@ describe('Batch Isolation Integration', () => {
     expect(res.body.id).toBe(batchId);
   });
 
-  skipIfNoTeacher('Student B cannot view a batch they are not enrolled in', async () => {
+  skipIfNoDb('Student B cannot view a batch they are not enrolled in', async () => {
     if (!batchId) return;
     const res = await request(app)
       .get(`/student/batches/${batchId}`)
@@ -84,7 +109,7 @@ describe('Batch Isolation Integration', () => {
     expect(res.status).toBe(401);
   });
 
-  skipIfNoTeacher('Student A cannot list student B batches (own batches only)', async () => {
+  skipIfNoDb('Student A cannot list student B batches (own batches only)', async () => {
     const resA = await request(app)
       .get('/student/batches')
       .set('Cookie', studentACookie);
@@ -101,5 +126,31 @@ describe('Batch Isolation Integration', () => {
       const ids: string[] = resA.body.map((b: { id: string }) => b.id);
       expect(ids).toContain(batchId);
     }
+  });
+
+  skipIfNoDb('Student B cannot be added to the organisation-scoped batch without an organisation assignment', async () => {
+    if (!batchId) return;
+    const usernameC = `${RUN_ID}stuC`;
+    await request(app)
+      .post('/auth/student/register')
+      .send({
+        firstName: 'Student',
+        lastName: 'C',
+        phone: `9${Math.floor(100000000 + Math.random() * 900000000)}`,
+        email: `${usernameC}@example.test`,
+        username: usernameC,
+        password: 'pass1234',
+      });
+
+    // Student C was never assigned to the organisation via
+    // POST /organisations/:id/students, so adding them straight to an
+    // org-scoped batch must be rejected even though the requesting teacher
+    // does own the batch.
+    const res = await request(app)
+      .post(`/teacher/batches/${batchId}/students`)
+      .set('Cookie', teacherCookie)
+      .send({ username: usernameC });
+
+    expect(res.status).toBe(422);
   });
 });

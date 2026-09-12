@@ -6,6 +6,10 @@ export const createBatchSchema = z.object({
     .trim()
     .min(1, 'Batch name is required')
     .max(100, 'Batch name must be 100 characters or less'),
+  organisationId: z
+    .string({ required_error: 'Organisation is required' })
+    .trim()
+    .min(1, 'Organisation is required'),
 });
 
 export type CreateBatchInput = z.infer<typeof createBatchSchema>;

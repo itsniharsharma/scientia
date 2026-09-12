@@ -6,3 +6,4 @@ export * from './auth.types';
 export * from './test.types';
 export * from './attempt.types';
 export * from './batch.types';
+export * from './organisation.types';

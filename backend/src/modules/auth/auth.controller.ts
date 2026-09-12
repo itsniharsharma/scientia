@@ -38,6 +38,26 @@ export async function registerStudent(
   }
 }
 
+export async function registerTeacher(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const { token, user } = await AuthService.registerTeacher(req.body);
+    setAuthCookie(res, token);
+    logger.info('auth.register', {
+      role: 'TEACHER',
+      cookieIssued: true,
+      origin: req.headers.origin ?? 'none',
+      ua: (req.headers['user-agent'] ?? '').slice(0, 80),
+    });
+    res.status(201).json({ user });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function loginStudent(
   req: Request,
   res: Response,

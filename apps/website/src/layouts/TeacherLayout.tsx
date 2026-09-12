@@ -25,6 +25,15 @@ const NAV_ITEMS = [
     ),
   },
   {
+    to: ROUTES.TEACHER_ORGANISATION,
+    label: 'Organisation',
+    icon: (
+      <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m-1 4h1m4-4h1m-1 4h1m-5 8v-4h2v4" />
+      </svg>
+    ),
+  },
+  {
     to: ROUTES.TEACHER_PROFILE,
     label: 'Profile',
     icon: (
