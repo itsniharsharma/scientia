@@ -9,6 +9,7 @@ import batchesRouter from './modules/batches/batches.routes';
 import teacherRouter from './modules/teacher/teacher.routes';
 import subjectsRouter from './modules/subjects/subjects.routes';
 import organisationsRouter from './modules/organisations/organisations.routes';
+import ragRouter from './modules/rag/rag.routes';
 import {
   subjectChaptersRouter,
   chaptersRouter,
@@ -64,6 +65,7 @@ app.use('/student', studentRouter);
 app.use('/teacher/batches', batchesRouter);
 app.use('/teacher', teacherRouter);
 app.use('/organisations', organisationsRouter);
+app.use('/rag', ragRouter);
 app.use('/subjects', subjectsRouter);
 app.use('/subjects/:subjectId/chapters', subjectChaptersRouter);
 app.use('/chapters', chaptersRouter);

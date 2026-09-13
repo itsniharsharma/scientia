@@ -59,6 +59,9 @@ function buildBot(token: string): Telegraf<BotContext> {
   // ── 7. Photo messages ─────────────────────────────────────────────────────
   bot.on('photo', handlers.handlePhoto as never);
 
+  // ── 7b. Document messages (Scientia Helpdesk RAG knowledge PDFs) ──────────
+  bot.on('document', handlers.handleDocument as never);
+
   // ── 8. Text messages (answer input + unknown-input fallback) ─────────────
   bot.on('text', handlers.handleText as never);
 

@@ -11,7 +11,12 @@ export function errorHandler(
 ): void {
   if (err instanceof AppError) {
     if (err.statusCode >= 500) {
-      logger.error(err.message, { path: req.path, method: req.method, status: err.statusCode });
+      // `cause` carries the real diagnostic detail for errors whose
+      // client-facing `message` is deliberately a safe, generic one (see
+      // modules/rag/core/errors.ts) — log it so operators aren't left with
+      // just "temporarily unavailable".
+      const detail = err.cause !== undefined ? String(err.cause) : err.message;
+      logger.error(detail, { path: req.path, method: req.method, status: err.statusCode });
     }
     res.status(err.statusCode).json({ error: err.message });
     return;

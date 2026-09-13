@@ -36,6 +36,8 @@ import { runCleanup } from '../jobs/cleanup';
 import { consumeLinkToken, linkTeacherToTelegram } from './telegram.link';
 import { validateAnswerOrNull } from '../services/validation.service';
 import { createChapterInBot, createTopicInBot } from './telegram.create';
+import { downloadTelegramFile } from './telegram.document';
+import { getRagService } from '../../modules/rag/rag.service';
 
 // ── Internal utilities ────────────────────────────────────────────────────────
 
@@ -930,4 +932,49 @@ export async function handleCallback(ctx: BotContext): Promise<void> {
   if (data === 'up_force')          return forceUpload(ctx);
 
   logger.warn('TELEGRAM_UNKNOWN_CALLBACK', { data, teacherId: ctx.session.teacherId });
+}
+
+// ── Helpdesk knowledge-base document upload ───────────────────────────────────
+// Deliberately minimal: validate transport-level concerns (file type),
+// download the bytes, and hand off to the RAG module's public API. No
+// parsing/chunking/embedding logic belongs here — that's rag.service.ts's
+// job, and this handler has no knowledge of how ingestion actually works.
+
+export async function handleDocument(ctx: BotContext): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const document = (ctx.message as any)?.document as
+    | { file_id: string; file_name?: string; mime_type?: string }
+    | undefined;
+  if (!document) return;
+
+  if (document.mime_type !== 'application/pdf') {
+    await ctx.reply('📄 Only PDF documents are accepted for the Scientia knowledge base.');
+    return;
+  }
+
+  const filename = document.file_name ?? `document-${document.file_id}.pdf`;
+  const teacherId = ctx.session.teacherId!;
+
+  await ctx.reply(`📥 Received "${filename}" — processing...`);
+
+  try {
+    const buffer = await downloadTelegramFile(document.file_id);
+    const record = await getRagService().ingestDocument({
+      filename,
+      buffer,
+      source: `telegram:${teacherId}`,
+    });
+
+    await ctx.reply(
+      `✅ "${filename}" ingested — version ${record.version}, ${record.chunkCount} chunk(s) indexed.`,
+    );
+  } catch (err) {
+    logger.error('RAG_TELEGRAM_INGEST_FAILED', {
+      teacherId,
+      filename,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    await ctx.reply(`❌ Failed to ingest "${filename}": ${message}`);
+  }
 }
