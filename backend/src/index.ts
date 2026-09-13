@@ -2,20 +2,17 @@ import app from './app';
 import { logger } from './shared/logger';
 import { getBot } from './teleService/telegram/telegram.bot';
 import { validateJwtSecret, WeakJwtSecretError } from './shared/validate-jwt-secret';
+import { checkRequiredEnv } from './shared/validate-required-env';
 
-const REQUIRED_ENV = [
-  'JWT_SECRET',
-  'DATABASE_URL',
-  'CLOUDINARY_CLOUD_NAME',
-  'CLOUDINARY_API_KEY',
-  'CLOUDINARY_API_SECRET',
-  'TELEGRAM_BOT_TOKEN',
-  'TELEGRAM_WEBHOOK_SECRET',
-  'TELEGRAM_ALLOWED_USER_IDS',
-];
-const missing = REQUIRED_ENV.filter((k) => !process.env[k]);
-if (missing.length > 0) {
-  logger.error('Missing required environment variables — refusing to start', { missing });
+const missingEnv = checkRequiredEnv();
+if (missingEnv.length > 0) {
+  logger.error('Missing required environment variables — refusing to start', {
+    // Distinguishes "never set" from "set to an empty string" — a variable
+    // configured in the deploy platform's dashboard with a blank value
+    // looks "configured" to a human but still fails this check for the
+    // same reason a truly-unset one does. Never logs the actual value.
+    missing: missingEnv.map((m) => `${m.key} (${m.reason})`),
+  });
   process.exit(1);
 }
 
