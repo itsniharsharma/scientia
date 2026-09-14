@@ -1,5 +1,6 @@
 import app from './app';
 import { logger } from './shared/logger';
+import { prisma } from './lib/prisma';
 import { getBot } from './teleService/telegram/telegram.bot';
 import { validateJwtSecret, WeakJwtSecretError } from './shared/validate-jwt-secret';
 import { checkRequiredEnv } from './shared/validate-required-env';
@@ -66,8 +67,18 @@ process.on('SIGTERM', () => {
     try { getBot().stop('SIGTERM'); } catch { /* already stopped */ }
   }
   server.close(() => {
-    logger.info('HTTP server closed — all connections drained, exiting');
-    process.exit(0);
+    // Release this instance's Postgres connections back to the Supabase
+    // pooler before exiting. Without this, every deploy/restart/crash
+    // leaks its connection pool — the pooler has no way to know this
+    // process is gone until its own (much longer) idle timeout kicks in.
+    // Enough leaked connections across repeated restarts can exhaust the
+    // pooler's connection cap and make the *next* instance hang trying to
+    // open a new connection (see incident 2026-09-14: crash-loop left
+    // orphaned connections, next healthy boot's logins hung for 30s).
+    prisma.$disconnect().finally(() => {
+      logger.info('HTTP server closed and DB pool disconnected — exiting');
+      process.exit(0);
+    });
   });
   // Force exit after 30 s if connections are still open
   setTimeout(() => {
