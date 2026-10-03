@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,7 +6,8 @@ import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import { ROUTES } from '../../routes';
-import { registerStudent, registerTeacher } from '../../lib/auth.api';
+import { registerStudent, registerTeacher, warmUpServer } from '../../lib/auth.api';
+import { getApiErrorMessage } from '../../lib/api-error';
 import { listOrganisations, registerOrganisation } from '../../lib/organisations.api';
 import { useAuthStore } from '../../store/auth.store';
 
@@ -259,8 +260,7 @@ function StudentSignupForm({ onBack }: { onBack: () => void }) {
       setAuth(result.user);
       navigate(ROUTES.STUDENT_DASHBOARD);
     } catch (err: unknown) {
-      const raw = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
-      setServerError(typeof raw === 'string' ? raw : 'Something went wrong. Please try again.');
+      setServerError(getApiErrorMessage(err, 'Something went wrong. Please try again.'));
     }
   };
 
@@ -417,8 +417,7 @@ function TeacherSignupForm({ onBack }: { onBack: () => void }) {
       setAuth(result.user);
       navigate(ROUTES.TEACHER_TESTS);
     } catch (err: unknown) {
-      const raw = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
-      setServerError(typeof raw === 'string' ? raw : 'Something went wrong. Please try again.');
+      setServerError(getApiErrorMessage(err, 'Something went wrong. Please try again.'));
     }
   };
 
@@ -589,8 +588,7 @@ function OrganisationSignupForm({ onBack }: { onBack: () => void }) {
       const org = await registerOrganisation(data.name.trim());
       setCreated({ name: org.name });
     } catch (err: unknown) {
-      const raw = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
-      setServerError(typeof raw === 'string' ? raw : 'Something went wrong. Please try again.');
+      setServerError(getApiErrorMessage(err, 'Something went wrong. Please try again.'));
     }
   };
 
@@ -704,6 +702,11 @@ function inputClass(hasError: boolean) {
 
 export function SignupPage() {
   const [role, setRole] = useState<Role | null>(null);
+
+  // Start waking the backend while the user picks a role and fills the form.
+  useEffect(() => {
+    warmUpServer();
+  }, []);
 
   if (role === 'STUDENT') {
     return <StudentSignupForm onBack={() => setRole(null)} />;

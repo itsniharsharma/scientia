@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import { ROUTES } from '../../routes';
-import { loginStudent } from '../../lib/auth.api';
+import { loginStudent, warmUpServer } from '../../lib/auth.api';
+import { getApiErrorMessage } from '../../lib/api-error';
+import { useSlowFlag } from '../../lib/use-slow-flag';
 import { useAuthStore } from '../../store/auth.store';
 
 const schema = z.object({
@@ -26,6 +28,13 @@ export function StudentLoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
+  const isSlow = useSlowFlag(isSubmitting);
+
+  // Start waking the backend while the user is still typing.
+  useEffect(() => {
+    warmUpServer();
+  }, []);
+
   const onSubmit = async (data: FormData) => {
     setServerError(null);
     try {
@@ -33,8 +42,9 @@ export function StudentLoginPage() {
       setAuth(result.user);
       navigate(ROUTES.STUDENT_DASHBOARD);
     } catch (err: unknown) {
-      const raw = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
-      setServerError(typeof raw === 'string' ? raw : 'Invalid username or password.');
+      // Only the server can say the credentials are wrong — a timeout or proxy
+      // error during a backend cold start must not be shown as one.
+      setServerError(getApiErrorMessage(err, 'Something went wrong. Please try again.'));
     }
   };
 
@@ -93,6 +103,12 @@ export function StudentLoginPage() {
         <Button type="submit" size="lg" loading={isSubmitting} className="w-full mt-1">
           Sign In to Dashboard
         </Button>
+
+        {isSlow && (
+          <p role="status" className="text-center text-xs text-slate-500 dark:text-slate-400">
+            Waking up the server — the first sign-in after a quiet period can take up to a minute.
+          </p>
+        )}
       </form>
 
       <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">
