@@ -15,7 +15,6 @@ import { getTestAnalytics } from '../../lib/tests.api';
 import { ROUTES } from '../../routes';
 import { useThemeStore } from '../../store/theme.store';
 import type {
-  IntegrityIncidentType,
   IntegritySummaryDto,
   TestAnalyticsStudentDto,
 } from '../../types/test';
@@ -23,13 +22,6 @@ import type {
 // ─── Integrity flags ──────────────────────────────────────────────────────────
 
 const FLAG = '⚑';
-
-const INCIDENT_LABEL: Record<IntegrityIncidentType, string> = {
-  TAB_HIDDEN: 'Switched tab or app',
-  PAGE_EXIT: 'Closed or left the exam page',
-  FOCUS_LOST: 'Clicked outside the exam window',
-  SCREENSHOT_KEY: 'Pressed a screenshot key',
-};
 
 const NO_INCIDENTS: IntegritySummaryDto = {
   flagged: false,
@@ -46,11 +38,6 @@ function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return s === 0 ? `${m}m` : `${m}m ${s}s`;
-}
-
-function incidentDuration(type: IntegrityIncidentType, seconds: number | null): string {
-  if (type === 'SCREENSHOT_KEY') return '';
-  return seconds === null ? 'did not return' : `away ${formatDuration(seconds)}`;
 }
 
 // e.g. ["2 tab/app switches", "1 screenshot key"]
@@ -109,53 +96,6 @@ function ScoreTooltip({
           {integrity.timeAwaySeconds > 0 && <p>Time away: {formatDuration(integrity.timeAwaySeconds)}</p>}
         </div>
       )}
-    </div>
-  );
-}
-
-function FlaggedStudents({ students }: { students: TestAnalyticsStudentDto[] }) {
-  return (
-    <div className="rounded-2xl border border-red-100 bg-white p-6 shadow-sm dark:border-red-900/50 dark:bg-slate-800/60">
-      <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-        <span className="text-red-600 dark:text-red-400">{FLAG}</span> Flagged Students
-      </h2>
-      <p className="mt-1 mb-4 text-xs text-slate-500 dark:text-slate-400">
-        Recorded while the test was in progress. Phones do not tell web pages about the hardware
-        screenshot buttons, so a mobile screenshot shows up here once the student leaves the exam
-        to use it.
-      </p>
-      <ul className="divide-y divide-slate-100 dark:divide-slate-700">
-        {students.map((s) => (
-          <li key={s.username} className="py-3">
-            <details>
-              <summary className="flex cursor-pointer flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
-                <span className="font-semibold text-slate-800 dark:text-slate-100">{s.username}</span>
-                <span className="text-red-700 dark:text-red-400">
-                  {integrityBreakdown(s.integrity).join(' · ')}
-                </span>
-                {s.integrity.timeAwaySeconds > 0 && (
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {formatDuration(s.integrity.timeAwaySeconds)} away in total
-                  </span>
-                )}
-              </summary>
-              <ol className="mt-2 space-y-1 pl-4 text-xs text-slate-600 dark:text-slate-300">
-                {s.integrity.incidents.map((i) => (
-                  <li key={`${i.at}-${i.type}`} className="flex flex-wrap gap-x-2">
-                    <span className="tabular-nums text-slate-400 dark:text-slate-500">
-                      {new Date(i.at).toLocaleTimeString()}
-                    </span>
-                    <span>{INCIDENT_LABEL[i.type]}</span>
-                    <span className="text-slate-400 dark:text-slate-500">
-                      {incidentDuration(i.type, i.durationSeconds)}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </details>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
@@ -330,7 +270,6 @@ export function TestAnalyticsPage() {
         )}
       </div>
 
-      {flaggedStudents.length > 0 && <FlaggedStudents students={flaggedStudents} />}
     </div>
   );
 }

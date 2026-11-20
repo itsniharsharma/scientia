@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { matchPath, useLocation } from 'react-router-dom';
 import { HelpdeskTrigger } from './HelpdeskTrigger';
 import { useHelpdeskChat } from './useHelpdeskChat';
 
@@ -17,6 +18,9 @@ export function GlobalHelpdesk() {
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const chat = useHelpdeskChat();
+  // Never available while a student is taking an exam: it is an AI assistant,
+  // and its button covers the exam's action bar on phones.
+  const inExam = !!matchPath('/student/attempts/:attemptId/exam', useLocation().pathname);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -38,6 +42,8 @@ export function GlobalHelpdesk() {
       document.removeEventListener('keydown', handleEscape);
     };
   }, [isOpen]);
+
+  if (inExam) return null;
 
   return (
     <>
