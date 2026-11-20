@@ -343,9 +343,10 @@ model Attempt {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
-  student   Student    @relation(fields: [studentId], references: [id])
-  test      Test       @relation(fields: [testId], references: [id])
-  responses Response[]
+  student         Student          @relation(fields: [studentId], references: [id])
+  test            Test             @relation(fields: [testId], references: [id])
+  responses       Response[]
+  integrityEvents IntegrityEvent[]
 
   @@unique([studentId, testId])
   @@index([studentId, status])
@@ -370,6 +371,37 @@ model Response {
   @@index([attemptId])
   @@index([testQuestionId])
   @@map("responses")
+}
+
+// ─── Exam integrity ───────────────────────────────────────────────────────────
+// Signals the exam page records while a student is taking a test. Append-only:
+// each row is one signal, keyed by a client-generated id so retried and
+// beaconed deliveries are idempotent. Signals of one "left the exam" episode
+// share an episodeId: e.g. FOCUS_LOST → TAB_HIDDEN → RETURNED.
+
+enum IntegrityEventType {
+  FOCUS_LOST     // exam window lost focus while still visible (other window/app, screenshot tool)
+  TAB_HIDDEN     // exam page hidden: switched tab or app, minimised, screen locked
+  PAGE_EXIT      // exam page closed, reloaded or navigated away from
+  SCREENSHOT_KEY // a screenshot keyboard shortcut reached the page
+  RETURNED       // student came back to the exam (closes an episode)
+}
+
+model IntegrityEvent {
+  id            String             @id @default(uuid())
+  attemptId     String
+  clientEventId String
+  episodeId     String
+  type          IntegrityEventType
+  // Client time normalised to the server clock at receipt.
+  occurredAt    DateTime
+  createdAt     DateTime           @default(now())
+
+  attempt Attempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, clientEventId])
+  @@index([attemptId, occurredAt])
+  @@map("integrity_events")
 }
 
 // ─── Upload Jobs ──────────────────────────────────────────────────────────────

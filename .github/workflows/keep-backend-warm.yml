@@ -1,26 +1,56 @@
-# Render's free tier spins the backend down after 15 minutes without traffic,
-# and waking it takes ~55s. The first sign-in after a quiet period then waits
-# through the whole cold start. Pinging /health every 10 minutes keeps it
-# awake (one always-on service fits inside Render's 750 free hours/month) and
-# keeps the database connection warm too, since /health probes the DB.
+# Watchdog that wakes the Render backend if it has gone to sleep.
 #
-# GitHub may delay scheduled runs at busy times and disables them after 60
-# days without repository activity — the frontend still tolerates a cold
-# start on its own, this only removes the wait.
+# Render's free tier hibernates the backend after 15 minutes without traffic;
+# a cold start then takes ~55s and sometimes more than 2 minutes. The backend
+# keeps *itself* awake by pinging its own public URL every ~5 minutes
+# (backend/src/lib/keep-warm.ts) — that is the primary defence, because
+# GitHub's scheduler is not dependable: this workflow, set to every 10
+# minutes, was observed firing only every 4–9 hours.
+#
+# So this job is the backstop, not the heartbeat. Whenever it does run it
+# wakes the backend if needed (riding out Render's `429
+# hibernate-rate-limited` and slow cold starts), verifies the Vercel /api
+# proxy too, and FAILS — which emails the repo owner — if the backend can't be
+# made healthy. A warning annotation means it found the backend asleep, i.e.
+# the self-ping is not holding.
 name: Keep backend warm
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    # Off-peak minutes: GitHub drops more scheduled runs at :00 and :30.
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: write # re-enable this workflow so GitHub's 60-day inactivity rule never disables it
+
+concurrency:
+  group: keep-backend-warm
+  cancel-in-progress: false
+
 jobs:
-  ping:
+  wake:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    # A cold start can exceed 2 minutes; the script's own deadline is 7.
+    timeout-minutes: 10
     steps:
-      - name: Ping /health
-        run: |
-          curl --silent --show-error --fail --max-time 120 \
-            --retry 2 --retry-delay 10 \
-            https://scientia-bx5h.onrender.com/health
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Wake backend and verify health
+        run: node scripts/keep-warm.mjs
+
+      # Scheduled workflows in public repos are disabled after 60 days without
+      # repository activity. Re-enabling through the API resets that counter.
+      - name: Keep this schedule enabled
+        if: always() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/keep-backend-warm.yml/enable" --silent || true

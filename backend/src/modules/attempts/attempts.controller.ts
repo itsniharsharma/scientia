@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as AttemptsService from './attempts.service';
+import * as IntegrityService from './integrity.service';
 
 export async function startAttempt(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -35,6 +36,16 @@ export async function submitAttempt(req: Request, res: Response, next: NextFunct
   try {
     const { userId } = req.user!;
     const result = await AttemptsService.submitAttempt(req.params.id, userId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function recordIntegrityEvents(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { userId } = req.user!;
+    const result = await IntegrityService.recordIntegrityEvents(req.params.id, userId, req.body);
     res.json(result);
   } catch (err) {
     next(err);

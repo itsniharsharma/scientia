@@ -4,6 +4,7 @@ import { prisma } from './lib/prisma';
 import { getBot } from './teleService/telegram/telegram.bot';
 import { validateJwtSecret, WeakJwtSecretError } from './shared/validate-jwt-secret';
 import { checkRequiredEnv } from './shared/validate-required-env';
+import { startKeepWarm, resolveKeepWarmUrl, type KeepWarmHandle } from './lib/keep-warm';
 
 const missingEnv = checkRequiredEnv();
 if (missingEnv.length > 0) {
@@ -45,8 +46,15 @@ if (!['development', 'production', 'test'].includes(process.env.NODE_ENV ?? ''))
 
 const PORT = process.env.PORT ?? 3001;
 
+let keepWarm: KeepWarmHandle | null = null;
+
 const server = app.listen(PORT, () => {
   logger.info('Backend started', { port: PORT, env: process.env.NODE_ENV ?? 'development' });
+
+  // Self-ping through the public URL so Render never hibernates this instance
+  // (see lib/keep-warm.ts). Only runs on Render, where RENDER_EXTERNAL_URL is set.
+  const keepWarmUrl = resolveKeepWarmUrl(process.env);
+  if (keepWarmUrl) keepWarm = startKeepWarm({ url: keepWarmUrl });
 
   // In polling mode (local dev), start the bot via long-polling.
   // This auto-deletes any existing webhook so Telegram stops pushing to Render.
@@ -63,6 +71,7 @@ const server = app.listen(PORT, () => {
 // Render (and most platforms) send SIGTERM before killing the process on deploy.
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received — initiating graceful shutdown');
+  keepWarm?.stop();
   if (process.env.TELEGRAM_MODE === 'polling') {
     try { getBot().stop('SIGTERM'); } catch { /* already stopped */ }
   }

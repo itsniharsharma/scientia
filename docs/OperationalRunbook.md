@@ -68,6 +68,35 @@ Returns in-process counters (since last restart) plus live DB orphan/today count
 
 ---
 
+## Keeping the Backend Warm (Render free tier)
+
+Render hibernates a free web service after 15 minutes without inbound traffic;
+waking it takes ~55 s, sometimes over 2 minutes. While asleep, requests through
+the Vercel `/api` proxy get an instant `429` with `x-render-routing:
+hibernate-rate-limited`. Four independent layers keep users from ever seeing that:
+
+| Layer | Where | What it does |
+|---|---|---|
+| Self-ping (primary) | `backend/src/lib/keep-warm.ts` | Every ~5 min (±20% jitter) the backend requests its own public `/health`. Re-enters through Render's edge, so it resets the idle timer. Retries after 30 s / 60 s / 120 s on failure. Uses `RENDER_EXTERNAL_URL` (set by Render); `KEEP_WARM_URL` overrides it, `KEEP_WARM=off` disables it. |
+| Watchdog | `.github/workflows/keep-backend-warm.yml` → `scripts/keep-warm.mjs` | Wakes a sleeping backend, riding out the 429 and slow cold starts (7-minute deadline), then checks the Vercel `/api` path. Fails the run (GitHub emails the owner) if the backend can't be made healthy. GitHub fires scheduled runs irregularly (observed every 4–9 h), so this is a backstop, not the heartbeat. |
+| Visitor wake | `apps/website/src/main.tsx` → `lib/backend-wake.ts` | Every page load pings the backend directly from the visitor's own IP, which Render does not rate-limit. |
+| Request retry | `apps/website/src/lib/axios.ts` | A GET refused because the backend is asleep waits for it to wake and is retried (twice at most). Writes are never retried there. |
+
+**Run the watchdog by hand:** `node scripts/keep-warm.mjs` (exit 0 = healthy).
+`--watch 5` keeps it running and pinging every ~5 min from any always-on machine.
+Tests: `node --test scripts/keep-warm.test.mjs`.
+
+**Signs the self-ping isn't working:** a watchdog run with the warning *"Backend
+was asleep"*, or `keep_warm.ping_failed` in the Render logs. `keep_warm.started`
+must appear after every deploy.
+
+**Limits of the free tier:** one always-on service uses ~744 of the 750 free
+instance hours a month. A second free service in the same Render workspace would
+exhaust them and Render would suspend both until the month ends. For a hard
+guarantee, a paid instance never sleeps at all.
+
+---
+
 ## Monitoring Alerts
 
 Set up alerts on these log patterns (Render log drain → your monitoring service):
@@ -79,6 +108,7 @@ Set up alerts on these log patterns (Render log drain → your monitoring servic
 | `TELEGRAM_CLOUDINARY_RETRY`   | Info     | Cloudinary transient error; watch frequency|
 | `SESSION_WRITE_ERROR`         | Warning  | Redis degraded; session not persisted       |
 | `Slow query detected`         | Warning  | DB query >1 s; check indexes               |
+| `keep_warm.ping_failed`       | Warning  | Self-ping failing; backend may hibernate — see *Keeping the Backend Warm* |
 
 ---
 

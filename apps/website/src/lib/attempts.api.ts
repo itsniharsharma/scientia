@@ -8,6 +8,7 @@ import type {
   StudentDashboardDto,
   AttemptReviewDto,
 } from '../types/attempt';
+import type { IntegrityEvent } from './exam-integrity';
 
 export async function startAttempt(testId: string): Promise<AttemptWithDetailsDto> {
   const res = await api.post<AttemptWithDetailsDto>('/attempts', { testId });
@@ -45,4 +46,11 @@ export async function getStudentDashboard(): Promise<StudentDashboardDto> {
 export async function getAttemptReview(attemptId: string): Promise<AttemptReviewDto> {
   const res = await api.get<AttemptReviewDto>(`/attempts/${attemptId}/review`);
   return res.data;
+}
+
+export async function recordIntegrityEvents(
+  attemptId: string,
+  events: IntegrityEvent[],
+): Promise<void> {
+  await api.post(`/attempts/${attemptId}/integrity-events`, { sentAt: Date.now(), events });
 }

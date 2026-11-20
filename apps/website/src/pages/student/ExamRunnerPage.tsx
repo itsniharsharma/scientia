@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAttempt, saveResponses, submitAttempt } from '../../lib/attempts.api';
 import { createRequestQueue } from '../../lib/requestQueue';
+import { useExamIntegrity } from '../../lib/useExamIntegrity';
 import { ROUTES } from '../../routes';
 import type { AttemptWithDetailsDto, SelectedAnswer } from '../../types/attempt';
 import type { TestQuestionDto, TestOptionSnapshot } from '../../types/test';
@@ -312,6 +313,10 @@ export function ExamRunnerPage() {
   const flushPendingSaveRef = useRef<() => void>(() => {});
   const handleAutoSubmitRef = useRef<() => void>(() => {});
 
+  // Records leaving the exam (tab/app switch, focus loss, closing the page)
+  // and screenshot shortcuts from the moment the exam is on screen.
+  const integrity = useExamIntegrity(attemptId, !!attempt && !loading);
+
   // ── Load attempt on mount ───────────────────────────────────────────────────
   useEffect(() => {
     if (!attemptId) return;
@@ -473,6 +478,7 @@ export function ExamRunnerPage() {
   // ─── Submit ───────────────────────────────────────────────────────────────────
   const handleAutoSubmit = useCallback(async () => {
     if (!attemptId) return;
+    await integrity.beginSubmit();
     try {
       // Wait for the last answer(s) to actually land before scoring — otherwise
       // the attempt can be submitted while a save is still in flight, and the
@@ -480,28 +486,35 @@ export function ExamRunnerPage() {
       // are caught and re-queued), so this can't hang the submit on an error.
       await flushPendingSave();
       await submitAttempt(attemptId);
+      integrity.endSubmit(true);
       clearLocalState(attemptId);
       navigate(ROUTES.STUDENT_RESULT(attemptId), { replace: true });
     } catch {
       // Submit failed — getAttempt will auto-expire on next load
+      integrity.endSubmit(false);
     }
-  }, [attemptId, navigate, flushPendingSave]);
+  }, [attemptId, navigate, flushPendingSave, integrity]);
   // Keep ref in sync so the countdown interval always calls the latest auto-submit
   handleAutoSubmitRef.current = handleAutoSubmit;
 
   const handleConfirmSubmit = async () => {
     if (!attemptId) return;
     setSubmitting(true);
+    await integrity.beginSubmit();
     try {
       // Wait for the last answer(s) to actually land before scoring — see
       // handleAutoSubmit for why this must be awaited, not fire-and-forget.
       await flushPendingSave();
       await submitAttempt(attemptId);
+      integrity.endSubmit(true);
       clearLocalState(attemptId);
       navigate(ROUTES.STUDENT_RESULT(attemptId), { replace: true });
     } catch (err: unknown) {
       const raw = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error;
+      // Still suspended: some browsers blur the window for alert(), which
+      // must not be recorded as the student leaving the exam.
       alert(typeof raw === 'string' ? raw : 'Submission failed. Please try again.');
+      integrity.endSubmit(false);
       setSubmitting(false);
       setShowSubmit(false);
     }
@@ -572,6 +585,16 @@ export function ExamRunnerPage() {
           {formatTime(timeRemaining)}
         </div>
       </header>
+
+      {integrity.incidents > 0 && (
+        <div
+          role="alert"
+          className="shrink-0 border-b border-red-200 bg-red-50 px-4 py-2 text-center text-xs font-medium text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400"
+        >
+          ⚑ Leaving the exam screen or taking a screenshot was recorded{' '}
+          {integrity.incidents === 1 ? 'once' : `${integrity.incidents} times`}. Your teacher will see this.
+        </div>
+      )}
 
       {/* ── Main area ── */}
       <div className="flex flex-1 overflow-hidden">

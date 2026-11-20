@@ -1,4 +1,6 @@
 import { api } from './axios';
+import { wakeBackend } from './backend-wake';
+import { withBackendWake } from './api-error';
 import type { StudentDto, TeacherDto } from '../types/auth';
 
 export type { StudentDto, TeacherDto };
@@ -15,15 +17,23 @@ interface LoginResponse<T> {
 // — otherwise a correct password fails before the server has even booted.
 const COLD_START_TIMEOUT_MS = 90_000;
 
-// Fire-and-forget request that starts waking the backend the moment an auth page
-// opens, so by the time the user has typed their credentials it is already up.
+// Starts waking the backend the moment an auth page opens, so by the time the
+// user has typed their credentials it is usually already up.
 export function warmUpServer(): void {
-  api.get('/health', { timeout: COLD_START_TIMEOUT_MS }).catch(() => {
-    // Only a wake-up nudge — the real request reports its own errors.
-  });
+  void wakeBackend();
 }
 
-export async function registerStudent(data: {
+function postAuth<T>(url: string, data: unknown, retryOnNoResponse: boolean): Promise<T> {
+  return withBackendWake(
+    async () => (await api.post<T>(url, data, { timeout: COLD_START_TIMEOUT_MS })).data,
+    wakeBackend,
+    { retryOnNoResponse },
+  );
+}
+
+// Registration is not repeated after a lost response — a retry could hit
+// "username already taken" for the account the first attempt just created.
+export function registerStudent(data: {
   firstName: string;
   lastName: string;
   phone: string;
@@ -31,13 +41,10 @@ export async function registerStudent(data: {
   username: string;
   password: string;
 }): Promise<LoginResponse<StudentDto>> {
-  const res = await api.post<LoginResponse<StudentDto>>('/auth/student/register', data, {
-    timeout: COLD_START_TIMEOUT_MS,
-  });
-  return res.data;
+  return postAuth('/auth/student/register', data, false);
 }
 
-export async function registerTeacher(data: {
+export function registerTeacher(data: {
   firstName: string;
   lastName: string;
   phone: string;
@@ -46,30 +53,22 @@ export async function registerTeacher(data: {
   password: string;
   organisationId: string;
 }): Promise<LoginResponse<TeacherDto>> {
-  const res = await api.post<LoginResponse<TeacherDto>>('/auth/teacher/register', data, {
-    timeout: COLD_START_TIMEOUT_MS,
-  });
-  return res.data;
+  return postAuth('/auth/teacher/register', data, false);
 }
 
-export async function loginStudent(data: {
+// Logging in has no side effects, so it is always safe to repeat.
+export function loginStudent(data: {
   username: string;
   password: string;
 }): Promise<LoginResponse<StudentDto>> {
-  const res = await api.post<LoginResponse<StudentDto>>('/auth/student/login', data, {
-    timeout: COLD_START_TIMEOUT_MS,
-  });
-  return res.data;
+  return postAuth('/auth/student/login', data, true);
 }
 
-export async function loginTeacher(data: {
+export function loginTeacher(data: {
   username: string;
   password: string;
 }): Promise<LoginResponse<TeacherDto>> {
-  const res = await api.post<LoginResponse<TeacherDto>>('/auth/teacher/login', data, {
-    timeout: COLD_START_TIMEOUT_MS,
-  });
-  return res.data;
+  return postAuth('/auth/teacher/login', data, true);
 }
 
 export async function logout(): Promise<void> {

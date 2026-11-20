@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { logout } from '../lib/auth.api';
+import { flushStoredIntegrityEvents } from '../lib/useExamIntegrity';
 import { ROUTES } from '../routes';
 import { ThemeToggleButton } from '../components/ThemeToggleButton';
 
@@ -57,6 +58,12 @@ export function StudentLayout() {
   const { user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Deliver exam-integrity events still queued from an earlier exam (e.g. the
+  // connection dropped right after submitting).
+  useEffect(() => {
+    flushStoredIntegrityEvents();
+  }, []);
 
   const username = user && 'username' in user ? user.username : '';
   const fullName = user && 'fullName' in user ? user.fullName : '';

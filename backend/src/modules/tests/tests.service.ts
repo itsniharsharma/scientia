@@ -3,6 +3,7 @@ import { NotFoundError, ForbiddenError, UnprocessableError } from '../../shared/
 import { getCached, invalidate, CACHE_KEYS, TTL } from '../../shared/cache';
 import { generateAndPersistTest } from './generation/generation.service';
 import { resolveTestStatus } from './tests.utils';
+import { summarizeIntegrity } from '../attempts/integrity.summary';
 import type {
   GenerateTestInput,
   UpdateTestInput,
@@ -410,13 +411,17 @@ export async function getTestAnalytics(testId: string, teacherId: string) {
     async () => {
       const attempts = await prisma.attempt.findMany({
         where: { testId, status: 'SUBMITTED' },
-        include: { student: { select: { username: true } } },
+        include: {
+          student: { select: { username: true } },
+          integrityEvents: { select: { episodeId: true, type: true, occurredAt: true } },
+        },
         orderBy: { score: 'desc' },
       });
 
       const students = attempts.map((a) => ({
         username: a.student.username,
         score: a.score ?? 0,
+        integrity: summarizeIntegrity(a.integrityEvents),
       }));
 
       const scores = students.map((s) => s.score);

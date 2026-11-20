@@ -142,6 +142,12 @@ export function InstructionsPage() {
               <span className="text-slate-400 shrink-0 dark:text-slate-500">•</span>
               You can mark questions for review and return to them before submitting.
             </li>
+            <li className="flex gap-2 font-medium text-red-700 dark:text-red-400">
+              <span className="shrink-0">⚑</span>
+              Stay on the exam screen until you submit. Switching tabs or apps, clicking
+              outside the exam window, closing the page or taking a screenshot is recorded
+              and shown to your teacher.
+            </li>
           </ul>
         </div>
 

@@ -79,9 +79,29 @@ export interface ReplacementPoolQuestion {
 
 // ─── Analytics ────────────────────────────────────────────────────────────────
 
+export type IntegrityIncidentType = 'TAB_HIDDEN' | 'PAGE_EXIT' | 'FOCUS_LOST' | 'SCREENSHOT_KEY';
+
+export interface IntegrityIncidentDto {
+  type: IntegrityIncidentType;
+  at: string;
+  // null: never came back on that device / a screenshot shortcut
+  durationSeconds: number | null;
+}
+
+export interface IntegritySummaryDto {
+  flagged: boolean;
+  tabSwitches: number;
+  pageExits: number;
+  focusLosses: number;
+  screenshotAttempts: number;
+  timeAwaySeconds: number;
+  incidents: IntegrityIncidentDto[];
+}
+
 export interface TestAnalyticsStudentDto {
   username: string;
   score: number;
+  integrity: IntegritySummaryDto;
 }
 
 export interface TestAnalyticsDto {

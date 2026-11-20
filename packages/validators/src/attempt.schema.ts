@@ -28,3 +28,32 @@ export const saveResponsesSchema = z.object({
 
 export type StartAttemptInput = z.infer<typeof startAttemptSchema>;
 export type SaveResponsesInput = z.infer<typeof saveResponsesSchema>;
+
+// ─── Exam integrity ───────────────────────────────────────────────────────────
+
+export const integrityEventTypes = [
+  'FOCUS_LOST',
+  'TAB_HIDDEN',
+  'PAGE_EXIT',
+  'SCREENSHOT_KEY',
+  'RETURNED',
+] as const;
+
+// Timestamps are the client's epoch milliseconds. `sentAt` is the client clock
+// when the batch was sent; the server uses it to correct for clock skew.
+export const recordIntegrityEventsSchema = z.object({
+  sentAt: z.number().int().positive(),
+  events: z
+    .array(
+      z.object({
+        clientEventId: z.string().uuid(),
+        episodeId: z.string().uuid(),
+        type: z.enum(integrityEventTypes),
+        occurredAt: z.number().int().positive(),
+      }),
+    )
+    .min(1)
+    .max(100),
+});
+
+export type RecordIntegrityEventsInput = z.infer<typeof recordIntegrityEventsSchema>;
