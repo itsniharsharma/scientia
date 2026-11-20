@@ -6,7 +6,6 @@ import { AppRouter } from './app/router';
 import { useAuthStore } from './store/auth.store';
 import { getCurrentUser } from './lib/auth.api';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { GlobalHelpdesk } from './components/helpdesk/GlobalHelpdesk';
 
 function AuthHydrator({ children }: { children: ReactNode }) {
   const { setAuth, clearAuth } = useAuthStore();
@@ -37,7 +36,6 @@ export function App() {
         <QueryClientProvider client={queryClient}>
           <AuthHydrator>
             <AppRouter />
-            <GlobalHelpdesk />
           </AuthHydrator>
         </QueryClientProvider>
       </BrowserRouter>
